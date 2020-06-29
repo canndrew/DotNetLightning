@@ -25,7 +25,11 @@ type InsertRevocationKeyError =
 type RevocationSet private (keys: list<CommitmentNumber * RevocationKey>) =
     new() = RevocationSet(List.empty)
 
-    member private this.Keys = keys
+    member this.Keys = keys
+
+    static member FromKeys (keys: list<CommitmentNumber * RevocationKey>): RevocationSet =
+        // TODO: sanity check the set of keys
+        RevocationSet keys
 
     member this.NextCommitmentNumber: CommitmentNumber =
         if this.Keys.IsEmpty then
