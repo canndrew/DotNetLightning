@@ -116,14 +116,14 @@ module Channel =
             {
                 ChannelId = data.ChannelId
                 NextCommitmentNumber =
-                    commitments.RemotePerCommitmentSecrets.NextCommitmentNumber.NextCommitment
+                    commitments.RemoteCommit.Index.NextCommitment
                 NextRevocationNumber =
                     commitments.RemotePerCommitmentSecrets.NextCommitmentNumber
                 DataLossProtect = OptionalField.Some <| {
                     YourLastPerCommitmentSecret =
                         commitments.RemotePerCommitmentSecrets.LastRevocationKey()
                     MyCurrentPerCommitmentPoint =
-                        commitments.RemoteCommit.RemotePerCommitmentPoint
+                        commitmentSeed.DeriveCommitmentPubKey commitments.RemoteCommit.Index
                 }
             }
         [ WeSentChannelReestablish ourChannelReestablish ] |> Ok
