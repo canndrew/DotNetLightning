@@ -148,8 +148,8 @@ type Commitments = {
             let lens = Commitments.RemoteChanges_ >-> RemoteChanges.Proposed_
             Optic.map lens (fun proposalList -> proposal :: proposalList) this
 
-        member this.IncrLocalHTLCId = { this with LocalNextHTLCId = this.LocalNextHTLCId + 1UL }
-        member this.IncrRemoteHTLCId = { this with RemoteNextHTLCId = this.RemoteNextHTLCId + 1UL }
+        member this.IncrLocalHTLCId() = { this with LocalNextHTLCId = this.LocalNextHTLCId + 1UL }
+        member this.IncrRemoteHTLCId() = { this with RemoteNextHTLCId = this.RemoteNextHTLCId + 1UL }
 
         member this.LocalHasChanges() =
             (not this.RemoteChanges.ACKed.IsEmpty) || (not this.LocalChanges.Proposed.IsEmpty)
