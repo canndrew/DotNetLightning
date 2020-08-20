@@ -2,46 +2,46 @@ namespace DotNetLightning.Serialize
 
 open System.IO
 
-type QueryFlags = private QueryFlags of uint8
-    with
-    static member Create (data) = QueryFlags(data)
+type QueryFlags = private {
+    BitFlags: uint8
+} with
+    static member Create (data: uint8): QueryFlags = { BitFlags = data }
     static member TryCreate(data: uint64) =
         if data > 0xfcUL then
             Error(sprintf "Too large query flag! It must be represented as 1 byte, but it was %A" data)
         else
-            QueryFlags(uint8 data) |> Ok
-    member private x.Value = let (QueryFlags v) = x in v
+            Ok { BitFlags = uint8 data }
     member this.RequiresChannelAnnouncement =
-        (this.Value &&& 0b00000001uy) = 1uy
+        (this.BitFlags &&& 0b00000001uy) = 1uy
         
     member this.RequiresChannelUpdateForNode1 =
-        (this.Value &&& 0b00000010uy) = 1uy
+        (this.BitFlags &&& 0b00000010uy) = 1uy
         
     member this.RequiresChannelUpdateForNode2 =
-        (this.Value &&& 0b00000100uy) = 1uy
+        (this.BitFlags &&& 0b00000100uy) = 1uy
     member this.RequiresNodeAnnouncementForNode1 =
-        (this.Value &&& 0b00001000uy) = 1uy
+        (this.BitFlags &&& 0b00001000uy) = 1uy
     member this.RequiresNodeAnnouncementForNode2 =
-        (this.Value &&& 0b00010000uy) = 1uy
+        (this.BitFlags &&& 0b00010000uy) = 1uy
         
     member this.ToBytes() =
-        [|(byte)this.Value|]
+        [|(byte)this.BitFlags|]
         
-type QueryOption = private QueryOption of uint8
-    with
-    static member Create (data) = QueryOption(data)
+type QueryOption = private {
+    BitFlags: uint8
+} with
+    static member Create (data: uint8): QueryOption = { BitFlags = data }
     static member TryCreate(data: uint64) =
         if data > 0xfcUL then
             Error(sprintf "Too large query flag! It must be represented as 1 byte, but it was %A" data)
         else
-            QueryFlags(uint8 data) |> Ok
-    member private x.Value = let (QueryOption v) = x in v
+            QueryFlags.Create(uint8 data) |> Ok
     member this.SenderWantsTimestamps =
-        (this.Value &&& 0b00000001uy) = 1uy
+        (this.BitFlags &&& 0b00000001uy) = 1uy
     member this.SenderWantsChecksums =
-        (this.Value &&& 0b00000010uy) = 1uy
+        (this.BitFlags &&& 0b00000010uy) = 1uy
     member this.ToBytes() =
-        [|(byte)this.Value|]
+        [|(byte)this.BitFlags|]
             
 type TwoTimestamps = {
     NodeId1: uint32
