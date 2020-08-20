@@ -261,8 +261,8 @@ type TaggedField =
         | NodeIdTaggedField(NodeId pk) ->
             let dBase32 = pk.ToBytes() |> Helpers.convert8BitsTo5
             this.WriteField(writer, dBase32)
-        | MinFinalCltvExpiryTaggedField (BlockHeightOffset32 c) ->
-            let dBase32 = c |> uint64 |> Helpers.uint64ToBase32
+        | MinFinalCltvExpiryTaggedField blockHeightOffset32 ->
+            let dBase32 = blockHeightOffset32.Blocks |> uint64 |> Helpers.uint64ToBase32
             this.WriteField(writer, dBase32)
         | ExpiryTaggedField x ->
             let dBase32 = ((x.ToUnixTimeSeconds() |> uint64) - timestamp) |> Helpers.uint64ToBase32
@@ -280,7 +280,7 @@ type TaggedField =
                 Array.blit (hopInfo.ShortChannelId.ToBytes()) 0 hopInfoBase256 33 8
                 Array.blit ((hopInfo.FeeBase.MilliSatoshi |> uint32).GetBytesBigEndian()) 0 hopInfoBase256 41 4
                 Array.blit ((hopInfo.FeeProportionalMillionths |> uint32).GetBytesBigEndian()) 0 hopInfoBase256 45 4
-                Array.blit (hopInfo.CLTVExpiryDelta.Value.GetBytesBigEndian()) 0 hopInfoBase256 49 2
+                Array.blit (hopInfo.CLTVExpiryDelta.Blocks.GetBytesBigEndian()) 0 hopInfoBase256 49 2
                 routeInfoBase256.Add(hopInfoBase256)
             let routeInfoBase32 = routeInfoBase256 |> Array.concat |>  Helpers.convert8BitsTo5
             this.WriteField(writer, routeInfoBase32)
@@ -407,7 +407,7 @@ type private Bolt11Data = {
                                 if (v > (UInt32.MaxValue |> uint64)) then
                                     return! loop r acc afterReadPosition
                                 else
-                                    let minFinalCltvExpiry = v |> uint32 |> BlockHeightOffset32 |> MinFinalCltvExpiryTaggedField
+                                    let minFinalCltvExpiry = v |> uint32 |> BlockHeightOffset32.FromBlocks |> MinFinalCltvExpiryTaggedField
                                     return! loop r { acc with Fields = minFinalCltvExpiry :: acc.Fields } afterReadPosition
                             | 9UL -> // fallback address
                                 if (size < 5) then
@@ -449,7 +449,7 @@ type private Bolt11Data = {
                                         let schId = r.ReadULongBE(64) |> ShortChannelId.FromUInt64
                                         let feeBase = r.ReadULongBE(32) |> LNMoney.MilliSatoshis
                                         let feeProportional = r.ReadULongBE(32) |> uint32
-                                        let cltvExpiryDelta =  r.ReadULongBE(16) |> uint16 |> BlockHeightOffset16
+                                        let cltvExpiryDelta =  r.ReadULongBE(16) |> uint16 |> BlockHeightOffset16.FromBlocks
                                         let hopInfo = { NodeId = nodeId
                                                         ShortChannelId = schId
                                                         FeeBase = feeBase

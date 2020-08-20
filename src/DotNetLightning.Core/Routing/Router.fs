@@ -56,7 +56,7 @@ module Routing =
     /// Defined in BOLT7
     let ROUTE_MAX_LENGTH = 20
     /// Max allowed cltv for a route
-    let DEFAULT_ROUTE_MAX_CLTV = BlockHeightOffset16(1008us)
+    let DEFAULT_ROUTE_MAX_CLTV = BlockHeightOffset16.FromBlocks 1008us
     /// The default number of routes we'll search for when findRoute is called with randomize = true
     [<Literal>]
     let private DEFAULT_ROUTES_COUNT = 3

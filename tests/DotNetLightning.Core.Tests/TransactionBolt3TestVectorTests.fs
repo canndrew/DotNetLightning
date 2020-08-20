@@ -54,7 +54,7 @@ let getLocal(): LocalConfig =
     {
       Ctx = ctx
       CommitTxNumber = CommitmentNumber(UInt48.MaxValue - (UInt48.FromUInt64 42UL))
-      ToSelfDelay = 144us |> BlockHeightOffset16
+      ToSelfDelay = 144us |> BlockHeightOffset16.FromBlocks
       DustLimit = Money.Satoshis(546L)
       PaymentBasePointSecret = paymentBasePointSecret
       PaymentBasePoint = paymentBasePoint
@@ -91,7 +91,7 @@ let getRemote(): RemoteConfig =
     {
       Ctx = ctx
       CommitTxNumber = CommitmentNumber(UInt48.MaxValue - (UInt48.FromUInt64 42UL))
-      ToSelfDelay = 144us |> BlockHeightOffset16
+      ToSelfDelay = 144us |> BlockHeightOffset16.FromBlocks
       DustLimit = Money.Satoshis(546L)
       PaymentBasePointSecret = paymentBasePointSecret
       PaymentBasePoint = paymentBasePoint

@@ -23,7 +23,7 @@ let testList = [
             let s = [| for _ in 0..31 -> 0xfeuy |] |> fun b -> new Key(b)
             s.PubKey.WitHash
         let localDustLimit = 546L |> Money.Satoshis
-        let toLocalDelay= 144us |> BlockHeightOffset16
+        let toLocalDelay= 144us |> BlockHeightOffset16.FromBlocks
         let feeRatePerKw = 1000u |> FeeRatePerKw
         
         let _ =

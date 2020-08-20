@@ -93,7 +93,7 @@ let tests =
                                                                         fundingAmount
             
             let localDustLimit = Money.Satoshis(546L)
-            let toLocalDelay = 200us |> BlockHeightOffset16
+            let toLocalDelay = 200us |> BlockHeightOffset16.FromBlocks
             let specBase = { CommitmentSpec.HTLCs = htlcMap; FeeRatePerKw = 15000u |> FeeRatePerKw;
                              ToLocal = LNMoney.MilliSatoshis(6988000000L); ToRemote =  3000000000L |> LNMoney.MilliSatoshis}
             let commitTx =
@@ -117,7 +117,7 @@ let tests =
             Expect.isTrue (commitTx3.CanExtractTransaction()) (sprintf "failed to finalize commitTx %A" commitTx3)
             
             let remoteDustLimit = Money.Satoshis(1000L)
-            let remoteDelay = 160us |> BlockHeightOffset16
+            let remoteDelay = 160us |> BlockHeightOffset16.FromBlocks
             let remoteCommitTx =
                 Transactions.makeCommitTx fundingScriptCoin
                                           CommitmentNumber.FirstCommitment

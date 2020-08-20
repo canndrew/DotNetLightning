@@ -149,6 +149,10 @@ type LightningWriterStream(inner: Stream) =
         this.Write(channelId.RawId.ToBytes())
     member this.Write(blockHeight: BlockHeight) =
         this.Write(blockHeight.Blocks, false)
+    member this.Write(blockHeightOffset16: BlockHeightOffset16) =
+        this.Write(blockHeightOffset16.Blocks, false)
+    member this.Write(blockHeightOffset32: BlockHeightOffset32) =
+        this.Write(blockHeightOffset32.Blocks, false)
 
     member this.WriteWithLen(data: byte[]) =
         let length = data.Length
@@ -351,6 +355,12 @@ type LightningReaderStream(inner: Stream) =
     member this.ReadBlockHeight() =
         let blocks = this.ReadUInt32 false
         BlockHeight.FromBlocks blocks
+    member this.ReadBlockHeightOffset16() =
+        let blocks = this.ReadUInt16 false
+        BlockHeightOffset16.FromBlocks blocks
+    member this.ReadBlockHeightOffset32() =
+        let blocks = this.ReadUInt32 false
+        BlockHeightOffset32.FromBlocks blocks
 
     member this.ReadECDSACompact() =
         let data = this.ReadBytes(64)

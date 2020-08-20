@@ -268,7 +268,7 @@ module Graph =
                 ) ""
                 
     module internal RoutingHeuristics =
-        let BLOCK_TIME_TWO_MONTHS = 8640us |> BlockHeightOffset16
+        let BLOCK_TIME_TWO_MONTHS = 8640us |> BlockHeightOffset16.FromBlocks
         let CAPACITY_CHANNEL_LOW = LNMoney.Satoshis(1000L)
         let CAPACITY_CHANNEL_HIGH = DotNetLightning.Channel.ChannelConstants.MAX_FUNDING_SATOSHIS.Satoshi |> LNMoney.Satoshis
         
@@ -322,7 +322,7 @@ module Graph =
             // Every edge is weighted by cltv-delta value, normalized.
             let channelCLTVDelta = update.CLTVExpiryDelta
             let cltvFactor =
-                RoutingHeuristics.normalize(channelCLTVDelta.Value |> double,
+                RoutingHeuristics.normalize(channelCLTVDelta.Blocks |> double,
                                             RoutingHeuristics.CLTV_LOW |> double,
                                             RoutingHeuristics.CLTV_HIGH |> double)
             let edgeCost = if (isNeighborTarget) then prev.Cost else edgeFeeCost(edge, prev.Cost)

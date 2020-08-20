@@ -532,7 +532,7 @@ with
             this.ChannelReserveSatoshis <- Money.Satoshis(ls.ReadInt64(false))
             this.HTLCMinimumMsat <- LNMoney.MilliSatoshis(ls.ReadInt64(false))
             this.FeeRatePerKw <- FeeRatePerKw(ls.ReadUInt32(false))
-            this.ToSelfDelay <- BlockHeightOffset16(ls.ReadUInt16(false))
+            this.ToSelfDelay <- ls.ReadBlockHeightOffset16()
             this.MaxAcceptedHTLCs <- ls.ReadUInt16(false)
             this.FundingPubKey <- ls.ReadPubKey()
             this.RevocationBasepoint <- ls.ReadPubKey()
@@ -554,7 +554,7 @@ with
             ls.Write(this.ChannelReserveSatoshis.Satoshi, false)
             ls.Write(this.HTLCMinimumMsat.MilliSatoshi, false)
             ls.Write(this.FeeRatePerKw.Value, false)
-            ls.Write(this.ToSelfDelay.Value, false)
+            ls.Write(this.ToSelfDelay)
             ls.Write(this.MaxAcceptedHTLCs, false)
             ls.Write(this.FundingPubKey.ToBytes())
             ls.Write(this.RevocationBasepoint.ToBytes())
@@ -592,8 +592,8 @@ with
             this.MaxHTLCValueInFlightMsat <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
             this.ChannelReserveSatoshis <- ls.ReadUInt64(false) |> Money.Satoshis
             this.HTLCMinimumMSat <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
-            this.MinimumDepth <- ls.ReadUInt32(false) |> BlockHeightOffset32
-            this.ToSelfDelay <- ls.ReadUInt16(false) |> BlockHeightOffset16
+            this.MinimumDepth <- ls.ReadBlockHeightOffset32()
+            this.ToSelfDelay <- ls.ReadBlockHeightOffset16()
             this.MaxAcceptedHTLCs <- ls.ReadUInt16(false)
             this.FundingPubKey <- ls.ReadPubKey()
             this.RevocationBasepoint <- ls.ReadPubKey()
@@ -610,8 +610,8 @@ with
             ls.Write(this.MaxHTLCValueInFlightMsat.MilliSatoshi, false)
             ls.Write(this.ChannelReserveSatoshis.Satoshi, false)
             ls.Write(this.HTLCMinimumMSat.MilliSatoshi, false)
-            ls.Write(this.MinimumDepth.Value, false)
-            ls.Write(this.ToSelfDelay.Value, false)
+            ls.Write(this.MinimumDepth)
+            ls.Write(this.ToSelfDelay)
             ls.Write(this.MaxAcceptedHTLCs, false)
             ls.Write(this.FundingPubKey.ToBytes())
             ls.Write(this.RevocationBasepoint.ToBytes())
@@ -1181,7 +1181,7 @@ type UnsignedChannelUpdateMsg = {
             this.Timestamp <- ls.ReadUInt32(false)
             this.MessageFlags <- ls.ReadByte()
             this.ChannelFlags <- ls.ReadByte()
-            this.CLTVExpiryDelta <- ls.ReadUInt16(false) |> BlockHeightOffset16
+            this.CLTVExpiryDelta <- ls.ReadBlockHeightOffset16()
             this.HTLCMinimumMSat <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
             this.FeeBaseMSat <- ls.ReadUInt32(false) |> uint64 |> LNMoney.MilliSatoshis
             this.FeeProportionalMillionths <- ls.ReadUInt32(false)
@@ -1196,7 +1196,7 @@ type UnsignedChannelUpdateMsg = {
             ls.Write(this.Timestamp, false)
             ls.Write(this.MessageFlags)
             ls.Write(this.ChannelFlags)
-            ls.Write(this.CLTVExpiryDelta.Value, false)
+            ls.Write(this.CLTVExpiryDelta)
             ls.Write(this.HTLCMinimumMSat.MilliSatoshi, false)
             ls.Write(uint32 this.FeeBaseMSat.MilliSatoshi, false)
             ls.Write(uint32 this.FeeProportionalMillionths, false)

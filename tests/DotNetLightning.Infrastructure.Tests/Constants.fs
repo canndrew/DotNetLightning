@@ -70,10 +70,10 @@ let getAliceParam() =
     p.MaxAcceptedHTLCs <- 100us
     // p.ExpirtyDeltaBlocks <- 144
     p.HTLCMinimumMSat <- LNMoney.Zero
-    p.MinimumDepth <- 3u |> BlockHeightOffset32
+    p.MinimumDepth <- 3u |> BlockHeightOffset32.FromBlocks
     // p.SmartFeeNBlocks <- 3
-    p.ToRemoteDelayBlocks <- BlockHeightOffset16 720us
-    p.MaxToLocalDelayBlocks <- BlockHeightOffset16 1000us
+    p.ToRemoteDelayBlocks <- BlockHeightOffset16.FromBlocks 720us
+    p.MaxToLocalDelayBlocks <- BlockHeightOffset16.FromBlocks 1000us
     p.FeeBaseMSat <- 546000UL |> LNMoney.MilliSatoshis
     p.FeeProportionalMillionths <- 10u
     p.ReserveToFundingRatio <- 0.01

@@ -25,7 +25,7 @@ type internal PeerManagerEntity = {
 }
     with
     member this.PublishDummyBlockWith(txIncluded: Transaction list) =
-        this.CurrentHeight <- this.CurrentHeight + BlockHeightOffset32 1u
+        this.CurrentHeight <- this.CurrentHeight + BlockHeightOffset32.FromBlocks 1u
         let dummyBlockHeader = this.NodeParams.Network.NBitcoinNetwork.GetGenesis().Header
         let dummyBlock : BlockContent =
             let txWithIndex = txIncluded |> List.indexed |> List.map(fun iTx -> (fst iTx |> uint32), (snd iTx))
