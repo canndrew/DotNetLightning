@@ -228,7 +228,7 @@ let updateFailMalformedHTLCGen = gen {
     let! c = ChannelId <!> uint256Gen
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! sha256 = uint256Gen
-    let! ec = FailureCode <!> Arb.generate<uint16>
+    let! ec = FailureCode.FromCode <!> Arb.generate<uint16>
     return {
         ChannelId = c
         HTLCId = htlc

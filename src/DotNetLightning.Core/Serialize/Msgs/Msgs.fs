@@ -786,12 +786,12 @@ with
             this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.Sha256OfOnion <- ls.ReadUInt256(true)
-            this.FailureCode <- ls.ReadUInt16(false) |> OnionError.FailureCode
+            this.FailureCode <- ls.ReadUInt16(false) |> OnionError.FailureCode.FromCode
         member this.Serialize(ls) =
             ls.Write(this.ChannelId.Value.ToBytes())
             ls.Write(this.HTLCId.Value, false)
             ls.Write(this.Sha256OfOnion, true)
-            ls.Write(this.FailureCode.Value, false)
+            ls.Write(this.FailureCode.Code, false)
 
 [<CLIMutable>]
 type CommitmentSignedMsg = {
@@ -1256,7 +1256,7 @@ type FailureMsg = {
         interface ILightningSerializable<FailureMsg> with
             member this.Deserialize(r: LightningReaderStream): unit =
                 let t = r.ReadUInt16(false)
-                this.Code <- t |> FailureCode
+                this.Code <- t |> FailureCode.FromCode
                 match t with
                 | (INVALID_REALM) ->
                     this.Data <- InvalidRealm
@@ -1317,7 +1317,7 @@ type FailureMsg = {
                 | _ ->
                     this.Data <- r.ReadAll() |> Unknown
             member this.Serialize(w: LightningWriterStream): unit =
-                w.Write(this.Code.Value, false)
+                w.Write(this.Code.Code, false)
                 match this.Data with
                 | InvalidOnionVersion onionHash ->
                     w.Write(onionHash, false)

@@ -191,7 +191,7 @@ module internal Commitments =
 
     let sendFailMalformed (op: OperationFailMalformedHTLC) (cm: Commitments) =
         // BADONION bit must be set in failure code
-        if (op.FailureCode.Value &&& OnionError.BADONION) = 0us then
+        if (op.FailureCode.Code &&& OnionError.BADONION) = 0us then
             op.FailureCode |> invalidFailureCode
         else
             match cm.GetHTLCCrossSigned(Direction.In, op.Id) with
@@ -209,7 +209,7 @@ module internal Commitments =
                 op.Id |> unknownHTLCId
 
     let receiveFailMalformed (msg: UpdateFailMalformedHTLCMsg) (cm: Commitments) =
-        if msg.FailureCode.Value &&& OnionError.BADONION = 0us then
+        if msg.FailureCode.Code &&& OnionError.BADONION = 0us then
             msg.FailureCode |> invalidFailureCode
         else
             match cm.GetHTLCCrossSigned(Direction.Out, msg.HTLCId) with

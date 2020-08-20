@@ -102,11 +102,13 @@ module OnionError =
 
     [<Flags>]
     [<Struct>]
-    type FailureCode = | FailureCode of uint16 with
+    type FailureCode = {
+        Code: uint16
+    } with
+        static member FromCode(code: uint16): FailureCode = { Code = code }
 
-        member this.Value = let (FailureCode v) = this in v
         member this.GetOnionErrorDescription() =
-            match this.Value with
+            match this.Code with
             | (INVALID_REALM) -> ("The realm byte was not understood by the processing node", "invalid_realm")
             | (TEMPORARY_NODE_FAILURE) -> ("Node indicated temporary node failure", "temporary_node_failure")
             | (PERMANENT_NODE_FAILURE) -> ("Node indicated permanent node failure", "permanent_node_failure")
