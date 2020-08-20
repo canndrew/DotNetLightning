@@ -88,7 +88,7 @@ type internal ActorCreator =
                                nodeParams.Value
                                )
             EventAggregator = eventAggregator
-            CurrentHeight = 100
+            CurrentHeight = BlockHeight.FromBlocks 100u
             FundingTxProvider = fundingTxProvider
         }
     
@@ -140,7 +140,7 @@ type internal ActorCreator =
                                nodeParams.Value
                                )
             EventAggregator = eventAggregator
-            CurrentHeight = 100
+            CurrentHeight = BlockHeight.FromBlocks 100u
             FundingTxProvider = fundingTxProvider
         }
     
@@ -423,13 +423,13 @@ let tests =
                     PaymentPreimage.Create([|for _ in 0..31 -> (uint8 i)|])
                 )
                 
-            let baseAddHTLCOperation = { OperationAddHTLC.Expiry = BlockHeight 130u
+            let baseAddHTLCOperation = { OperationAddHTLC.Expiry = BlockHeight.FromBlocks 130u
                                          Amount = LNMoney.Zero
                                          PaymentHash = paymentPreImages.[0].Hash
                                          Onion = OnionPacket.LastPacket
                                          Upstream = None
                                          Origin = None
-                                         CurrentHeight = BlockHeight 101u }
+                                         CurrentHeight = BlockHeight.FromBlocks 101u }
                 
             // send update_add_htlc from alice to bob
             let addHtlcOperation = { baseAddHTLCOperation with Amount = LNMoney.MilliSatoshis 1000L }

@@ -74,7 +74,7 @@ let tests = testList "Route Calculation" [
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute (g) (a) (e) DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) routeParams (BlockHeight 400000u)
+            Routing.findRoute (g) (a) (e) DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) routeParams (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (route |> hops2Ids) ([1UL; 2UL; 3UL; 4UL]) ""
     testCase "Calculate simple route" <| fun _ ->
@@ -103,7 +103,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute graph a d amount 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute graph a d amount 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         let totalCost = Graph.pathWeight(hops2Edges(route)) (amount) false BlockHeight.Zero None |> fun x -> x.Cost
         Expect.sequenceEqual (hops2Ids(route)) [4UL; 5UL; 6UL] ""
@@ -113,7 +113,7 @@ let tests = testList "Route Calculation" [
         let (desc, update) = makeUpdate(5UL, e, f, LNMoney.One, 400u, Some(LNMoney.Zero), Some(LNMoney.MilliSatoshis(10005L)), None)
         let graph1 = graph.AddEdge(desc, update)
         let route1 =
-            Routing.findRoute(graph1) a d amount 1  (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(graph1) a d amount 1  (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route1)) [1UL; 2UL; 3UL] ""
         
@@ -127,7 +127,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [2UL;5UL] ""
         
@@ -140,7 +140,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route1 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty) (Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty) (Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
             
         Expect.sequenceEqual (hops2Ids(route1)) [1UL; 2UL; 3UL; 4UL;] ""
@@ -148,7 +148,7 @@ let tests = testList "Route Calculation" [
         let graphWithRemovedEdge = g.RemoveEdge({ ChannelDesc.ShortChannelId = ShortChannelId.FromUInt64(3UL); A = c; B = d })
         
         let route2 =
-            Routing.findRoute(graphWithRemovedEdge) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty)(Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(graphWithRemovedEdge) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty)(Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError (route2) ""
         
     testCase "calculate the shortest path (select direct channel)" <| fun _ ->
@@ -160,7 +160,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute(graph) a d DEFAULT_AMOUNT_MSAT 2 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(graph) a d DEFAULT_AMOUNT_MSAT 2 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [4UL] ""
         
@@ -176,7 +176,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [1UL; 2UL; 3UL] ""
         
@@ -188,7 +188,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError (route) ""
         
     testCase "if there are multiple channels between the same node, select the cheapest" <| fun _ ->
@@ -200,7 +200,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute graph f i DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty)DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual(hops2Ids(route)) [1UL;6UL;3UL] ""
         
@@ -214,7 +214,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [1UL;2UL;3UL;4UL;] ""
     testCase "no local channels" <| fun _ ->
@@ -224,7 +224,7 @@ let tests = testList "Route Calculation" [
         ]
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
-        let route = Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+        let route = Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError route ""
         
     testCase "route not found (source OR target node not connected)" <| fun _ ->
@@ -233,8 +233,8 @@ let tests = testList "Route Calculation" [
             makeUpdateSimple(4UL, c, d)
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates).AddVertex(a).AddVertex(e)
-        Expect.isError(Routing.findRoute g a d DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))) ""
-        Expect.isError(Routing.findRoute g b e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))) ""
+        Expect.isError(Routing.findRoute g a d DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)) ""
+        Expect.isError(Routing.findRoute g b e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)) ""
         
     testCase "route not found (amount too high OR too low)" <| fun _ ->
         let highAmount = DEFAULT_AMOUNT_MSAT * 10L
@@ -253,8 +253,8 @@ let tests = testList "Route Calculation" [
         let gHigh = DirectedLNGraph.Create().AddEdges(updatesHi)
         let gLow = DirectedLNGraph.Create().AddEdges(updatesLow)
         
-        Expect.isError (Routing.findRoute gHigh a d highAmount 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))) ""
-        Expect.isError (Routing.findRoute gLow a d lowAmount 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))) ""
+        Expect.isError (Routing.findRoute gHigh a d highAmount 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)) ""
+        Expect.isError (Routing.findRoute gLow a d lowAmount 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)) ""
         
     testCase "route to self" <| fun _ ->
         let updates = [
@@ -265,7 +265,7 @@ let tests = testList "Route Calculation" [
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute g a a DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a a DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError route ""
         
     testCase "route to immediate neighbor" <| fun _ ->
@@ -278,7 +278,7 @@ let tests = testList "Route Calculation" [
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute(g) a b DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(g) a b DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [1UL] ""
         
@@ -292,12 +292,12 @@ let tests = testList "Route Calculation" [
         // a -> e works, e -> a fails
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route1 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
             
         Expect.sequenceEqual (hops2Ids(route1)) [1UL; 2UL; 3UL; 4UL] ""
         let route2 =
-            Routing.findRoute g e e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g e e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError route2 ""
         
     testCase "calculate route and return metadata" <| fun _ ->
@@ -402,7 +402,7 @@ let tests = testList "Route Calculation" [
             
         let g = DirectedLNGraph.Create().AddEdges(updates |> Map.toSeq)
         let hops =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         let e = [
             (ChannelHop.Create(a, b, uab))
@@ -450,7 +450,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let ignoredE = Set.singleton({ ShortChannelId = ShortChannelId.FromUInt64(3UL); A = c; B = d })
-        let route1 = Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (ignoredE) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+        let route1 = Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (ignoredE) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError (route1) ""
         
         // verify that we left the graph untouched
@@ -460,7 +460,7 @@ let tests = testList "Route Calculation" [
         
         // make sure we can find a route without the blacklist
         let route2 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual(hops2Ids(route2)) [1UL; 2UL; 3UL; 4UL] ""
         
@@ -472,14 +472,14 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute(g) a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
         Expect.isError(route) "there should be no e node in the graph"
         
         // now we add the missing edge to reach the destination
         let (extraDesc, extraUpdate) = makeUpdate(4UL, d, e, LNMoney.MilliSatoshis(5L), 5u, None, None, None)
         let extraGraphEdges = Set.singleton({ GraphLabel.Desc =extraDesc; Update = extraUpdate })
         let route1 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (extraGraphEdges) (Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (extraGraphEdges) (Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual(hops2Ids(route1)) [1UL; 2UL; 3UL; 4UL] ""
         
@@ -493,7 +493,7 @@ let tests = testList "Route Calculation" [
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route1 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route1)) [1UL;2UL; 3UL; 4UL] ""
         Expect.equal ((route1 |> Seq.item 1).LastUpdateValue.FeeBaseMSat) (LNMoney.MilliSatoshis 10L) ""
@@ -501,7 +501,7 @@ let tests = testList "Route Calculation" [
         let (extraDesc, extraUpdate) = makeUpdate(2UL, b, c, LNMoney.MilliSatoshis 5L, 5u, None, None, None)
         let extraGraphEdges = Set.singleton({ GraphLabel.Desc = extraDesc; Update = extraUpdate })
         let route2 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 extraGraphEdges (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 extraGraphEdges (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route2)) [1UL; 2UL; 3UL; 4UL] ""
         Expect.equal ((route2 |> Seq.item 1).LastUpdateValue.FeeBaseMSat) (LNMoney.MilliSatoshis 5L) ""
@@ -554,19 +554,19 @@ let tests = testList "Route Calculation" [
             
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let r18 =
-            (Routing.findRoute g (nodes.[0]) nodes.[18] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u)))
+            (Routing.findRoute g (nodes.[0]) nodes.[18] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u))
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(r18)) [ for i in 0..17 -> (uint64 i) ] ""
         let r19 =
-            (Routing.findRoute g (nodes.[0]) nodes.[19] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u)))
+            (Routing.findRoute g (nodes.[0]) nodes.[19] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u))
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(r19)) [ for i in 0..18 -> (uint64 i) ] ""
         let r20 =
-            (Routing.findRoute g (nodes.[0]) nodes.[20] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u)))
+            (Routing.findRoute g (nodes.[0]) nodes.[20] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u))
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(r20)) [ for i in 0..19 -> (uint64 i) ] ""
         let r21 =
-            (Routing.findRoute g (nodes.[0]) nodes.[21] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u)))
+            (Routing.findRoute g (nodes.[0]) nodes.[21] DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u))
         Expect.isError(r21) ""
         
     testCase "ignore cheaper route when it has more than 20 hops" <| fun _ ->
@@ -579,7 +579,7 @@ let tests = testList "Route Calculation" [
         let updates2 = (makeUpdate(99UL, nodes.[2], nodes.[48], LNMoney.MilliSatoshis(1000L), 0u, None, None, None)) :: updates
         let g = DirectedLNGraph.Create().AddEdges(updates2)
         let route =
-            Routing.findRoute g nodes.[0] nodes.[49] DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g nodes.[0] nodes.[49] DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [0UL; 1UL; 99UL; 48UL] ""
         
@@ -594,7 +594,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute (g) a d DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) {DEFAULT_ROUTE_PARAMS with RouteMaxCLTV = (BlockHeightOffset16(28us))} (BlockHeight(400000u))
+            Routing.findRoute (g) a d DEFAULT_AMOUNT_MSAT 1 (Set.empty) (Set.empty) (Set.empty) {DEFAULT_ROUTE_PARAMS with RouteMaxCLTV = (BlockHeightOffset16(28us))} (BlockHeight.FromBlocks 400000u)
             |> Result.deref
             
         Expect.sequenceEqual (hops2Ids(route)) [4UL;5UL;6UL;] ""
@@ -610,7 +610,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route =
-            Routing.findRoute g a f DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) { DEFAULT_ROUTE_PARAMS with RouteMaxLength = 3} (BlockHeight(400000u))
+            Routing.findRoute g a f DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) { DEFAULT_ROUTE_PARAMS with RouteMaxLength = 3} (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route)) [1UL; 6UL] ""
         
@@ -625,7 +625,7 @@ let tests = testList "Route Calculation" [
         
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route1 =
-            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a e DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route1)) [1UL;2UL; 4UL; 5UL;] ""
         
@@ -641,7 +641,7 @@ let tests = testList "Route Calculation" [
         ]
         let g = DirectedLNGraph.Create().AddEdges(updates)
         let route1 =
-            Routing.findRoute g a d DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute g a d DEFAULT_AMOUNT_MSAT 1 (Set.empty)(Set.empty)(Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (hops2Ids(route1)) [1UL; 3UL; 5UL;] ""
         
@@ -692,7 +692,7 @@ let tests = testList "Route Calculation" [
         
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let twoShortestPaths =
-            Graph.yenKShortestPaths graph c h DEFAULT_AMOUNT_MSAT Set.empty Set.empty Set.empty 2 None (BlockHeight(0u)) (fun _ -> true)
+            Graph.yenKShortestPaths graph c h DEFAULT_AMOUNT_MSAT Set.empty Set.empty Set.empty 2 None BlockHeight.Zero (fun _ -> true)
             |> Seq.toList
             
         Expect.equal (twoShortestPaths.Length) 2 ""
@@ -720,7 +720,7 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let foundPaths =
-            Graph.yenKShortestPaths graph a f DEFAULT_AMOUNT_MSAT (Set.empty)(Set.empty)(Set.empty) 3 None (BlockHeight 0u) (fun _ -> true)
+            Graph.yenKShortestPaths graph a f DEFAULT_AMOUNT_MSAT (Set.empty)(Set.empty)(Set.empty) 3 None BlockHeight.Zero (fun _ -> true)
             |> Seq.toList
         Expect.equal (foundPaths.Length) 2 ""
         Expect.sequenceEqual (foundPaths.[0].Path |> Seq.map(ChannelHop.FromGraphEdge) |> hops2Ids) [1UL; 2UL; 3UL] ""
@@ -739,11 +739,11 @@ let tests = testList "Route Calculation" [
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let strictFeeParams = { DEFAULT_ROUTE_PARAMS with MaxFeeBase = LNMoney.MilliSatoshis 7L; MaxFeePCT = 0. }
         for _ in 0..10 do
-            let r = Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 3 (Set.empty) (Set.empty) (Set.empty) strictFeeParams (BlockHeight(400000u))
+            let r = Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 3 (Set.empty) (Set.empty) (Set.empty) strictFeeParams (BlockHeight.FromBlocks 400000u)
             Expect.isOk r ""
             let someRoute = r |> Result.deref
             let routeCost =
-                (Graph.pathWeight (hops2Edges(someRoute)) DEFAULT_AMOUNT_MSAT false (BlockHeight 0u) None).Cost - DEFAULT_AMOUNT_MSAT
+                (Graph.pathWeight (hops2Edges(someRoute)) DEFAULT_AMOUNT_MSAT false BlockHeight.Zero None).Cost - DEFAULT_AMOUNT_MSAT
             let costMSat = routeCost.MilliSatoshi
             Expect.isTrue(costMSat = 5L || costMSat = 6L) ""
     testCase "Use weight ratios to when computing the edge weight" <| fun _ ->
@@ -759,14 +759,14 @@ let tests = testList "Route Calculation" [
         ]
         let graph = DirectedLNGraph.Create().AddEdges(updates)
         let r =
-            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight(400000u))
+            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty) DEFAULT_ROUTE_PARAMS (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (r |> hops2Nodes) [(a, b); (b, c); (c, d)] ""
         let routeClTVOptimized =
             let p =
                 let r = WeightRatios.TryCreate(1., 0., 0.) |> Result.deref
                 {DEFAULT_ROUTE_PARAMS with Ratios = Some(r)}
-            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty)  p (BlockHeight(400000u))
+            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty)  p (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (routeClTVOptimized |> hops2Nodes) [(a,e); (e, f); (f, d)] ""
             
@@ -774,7 +774,7 @@ let tests = testList "Route Calculation" [
             let p =
                 let r = WeightRatios.TryCreate(0., 0., 1.) |> Result.deref
                 {DEFAULT_ROUTE_PARAMS with Ratios = Some(r)}
-            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty)  p (BlockHeight(400000u))
+            Routing.findRoute graph a d DEFAULT_AMOUNT_MSAT 0 (Set.empty) (Set.empty) (Set.empty)  p (BlockHeight.FromBlocks 400000u)
             |> Result.deref
         Expect.sequenceEqual (routeCapOptimized |> hops2Nodes) [(a,e); (e, c); (c, d)] ""
         
@@ -794,7 +794,7 @@ let tests = testList "Route Calculation" [
         let routeScoreOptimized =
             let wr = WeightRatios.TryCreate(0.33, 0.33, 0.33) |> Result.deref
             let rp = { DEFAULT_ROUTE_PARAMS with Ratios = Some (wr) }
-            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight(currentBlockHeight))
+            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight.FromBlocks currentBlockHeight)
             |> Result.deref
             |> hops2Nodes
         Expect.sequenceEqual routeScoreOptimized [(a,b); (b,c); (c,d)] ""
@@ -814,7 +814,7 @@ let tests = testList "Route Calculation" [
         let routeScoreOptimized =
             let wr = WeightRatios.TryCreate(0.33, 0.33, 0.33) |> Result.deref
             let rp = { DEFAULT_ROUTE_PARAMS with Ratios = Some (wr) }
-            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight(400000u))
+            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight.FromBlocks 400000u)
             |> Result.deref
             |> hops2Nodes
         Expect.sequenceEqual routeScoreOptimized [(a,b); (b,c); (c,d)] ""
@@ -838,7 +838,7 @@ let tests = testList "Route Calculation" [
         let routeScoreOptimized =
             let wr = WeightRatios.TryCreate(0.33, 0.33, 0.33) |> Result.deref
             let rp = { DEFAULT_ROUTE_PARAMS with Ratios = Some (wr) }
-            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight(400000u))
+            Routing.findRoute graph a d (DEFAULT_AMOUNT_MSAT / 2L) 1 (Set.empty)(Set.empty)(Set.empty) rp (BlockHeight.FromBlocks 400000u)
             |> Result.deref
             |> hops2Nodes
         Expect.sequenceEqual routeScoreOptimized [(a,e); (e,f); (f,d)] ""
@@ -949,7 +949,7 @@ let tests = testList "Route Calculation" [
         let targetNode = PubKey("024655b768ef40951b20053a5c4b951606d4d86085d51238f2c67c7dec29c792ca") |> NodeId
         let amount = LNMoney.MilliSatoshis 351000L
         let route =
-            Routing.findRoute graph thisNode targetNode amount 1 (Set.empty)(Set.empty)(Set.empty) routeParams (BlockHeight(567634u))
+            Routing.findRoute graph thisNode targetNode amount 1 (Set.empty)(Set.empty)(Set.empty) routeParams (BlockHeight.FromBlocks 567634u)
             |> Result.deref
             |> Seq.toList
             

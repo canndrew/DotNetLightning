@@ -723,14 +723,14 @@ with
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.Amount <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
             this.PaymentHash <- ls.ReadUInt256(false) |> PaymentHash
-            this.CLTVExpiry <- ls.ReadUInt32(false) |> BlockHeight
+            this.CLTVExpiry <- ls.ReadBlockHeight()
             this.OnionRoutingPacket <- ILightningSerializable.deserialize<OnionPacket>(ls)
         member this.Serialize(ls) =
             ls.Write(this.ChannelId)
             ls.Write(this.HTLCId.Value, false)
             ls.Write(this.Amount.MilliSatoshi, false)
             ls.Write(this.PaymentHash.ToBytes())
-            ls.Write(this.CLTVExpiry.Value, false)
+            ls.Write(this.CLTVExpiry)
             (this.OnionRoutingPacket :> ILightningSerializable<OnionPacket>).Serialize(ls)
 
 [<CLIMutable>]
@@ -1294,7 +1294,7 @@ type FailureMsg = {
                     let d = ILightningSerializable.deserialize<ChannelUpdateMsg>(r)
                     this.Data <- (flags, d ) |> ChannelDisabled
                 | (INOCCORRECT_CLTV_EXPIRY) ->
-                    let expiry = r.ReadUInt32(false) |> BlockHeight
+                    let expiry = r.ReadBlockHeight()
                     let d = ILightningSerializable.deserialize<ChannelUpdateMsg>(r)
                     this.Data <- (expiry, d) |> IncorrectCLTVExpiry
                 | (UNKNOWN_PAYMENT_HASH) ->
@@ -1307,7 +1307,7 @@ type FailureMsg = {
                 | FINAL_EXPIRY_TOO_SOON ->
                     this.Data <- FinalExpiryTooSoon
                 | (FINAL_INCORRECT_CLTV_EXPIRY) ->
-                    let expiry = r.ReadUInt32(false) |> BlockHeight
+                    let expiry = r.ReadBlockHeight()
                     this.Data <- expiry |> FinalIncorrectCLTVExpiry
                 | (FINAL_INCORRECT_HTLC_AMOUNT) ->
                     let expiry = r.ReadUInt64(false) |> LNMoney.MilliSatoshis
@@ -1337,12 +1337,12 @@ type FailureMsg = {
                     w.Write(flags, false)
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | IncorrectCLTVExpiry (expiry, update) ->
-                    w.Write(expiry.Value, false)
+                    w.Write(expiry)
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | ExpiryTooSoon (update) ->
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | FinalIncorrectCLTVExpiry (expiry) ->
-                    w.Write(expiry.Value, false)
+                    w.Write(expiry)
                 | FinalIncorrectCLTVAmount (amountMSat) ->
                     w.Write(amountMSat.MilliSatoshi, false)
                 | FailureMsgData.Unknown b ->
@@ -1507,7 +1507,7 @@ type QueryChannelRangeMsg = {
     interface ILightningSerializable<QueryChannelRangeMsg> with
         member this.Deserialize(ls) =
             this.ChainHash <- ls.ReadUInt256(true)
-            this.FirstBlockNum <- ls.ReadUInt32(false) |> BlockHeight
+            this.FirstBlockNum <- ls.ReadBlockHeight()
             this.NumberOfBlocks <- ls.ReadUInt32(false)
             this.TLVs <-
                 let r = ls.ReadTLVStream()
@@ -1515,7 +1515,7 @@ type QueryChannelRangeMsg = {
                 |> Array.map(QueryChannelRangeTLV.FromGenericTLV)
         member this.Serialize(ls) =
             ls.Write(this.ChainHash, true)
-            ls.Write(this.FirstBlockNum.Value, false)
+            ls.Write(this.FirstBlockNum)
             ls.Write(this.NumberOfBlocks, false)
             this.TLVs |> Array.map(fun tlv -> tlv.ToGenericTLV()) |> ls.WriteTLVStream
 
@@ -1534,7 +1534,7 @@ type ReplyChannelRangeMsg = {
     interface ILightningSerializable<ReplyChannelRangeMsg> with
         member this.Deserialize(ls) =
             this.ChainHash <- ls.ReadUInt256(true)
-            this.FirstBlockNum <- ls.ReadUInt32(false) |> BlockHeight
+            this.FirstBlockNum <- ls.ReadBlockHeight()
             this.NumOfBlocks <- ls.ReadUInt32(false)
             this.Complete <-
                 let b =ls.ReadByte()
@@ -1549,7 +1549,7 @@ type ReplyChannelRangeMsg = {
                 ls.ReadTLVStream() |> Array.map(ReplyChannelRangeTLV.FromGenericTLV)
         member this.Serialize(ls) =
             ls.Write(this.ChainHash, true)
-            ls.Write(this.FirstBlockNum.Value, false)
+            ls.Write(this.FirstBlockNum)
             ls.Write(this.NumOfBlocks, false)
             ls.Write(if this.Complete then 1uy else 0uy)
             let encodedIds = this.ShortIds |> Encoder.encodeShortChannelIds (this.ShortIdsEncodingType)

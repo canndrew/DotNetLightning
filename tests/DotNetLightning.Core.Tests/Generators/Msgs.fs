@@ -193,14 +193,14 @@ let updateAddHTLCGen = gen {
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! amount = lnMoneyGen
     let! paymentHash = PaymentHash <!> uint256Gen
-    let! cltvE = Arb.generate<uint32>
+    let! cltvE = blockHeightGen
     let! onionRoutingPacket = onionPacketGen
     return {
         ChannelId = c
         HTLCId = htlc
         Amount = amount
         PaymentHash = paymentHash
-        CLTVExpiry = cltvE |> BlockHeight
+        CLTVExpiry = cltvE
         OnionRoutingPacket = onionRoutingPacket
     }
 }
@@ -502,7 +502,7 @@ let private queryChannelRangeTLVGen =
     |]
 let queryChannelRangeGen: Gen<QueryChannelRangeMsg> = gen {
     let! chainHash = chainHashGen
-    let! firstBlockNum = Arb.generate<uint32> |> Gen.map(BlockHeight)
+    let! firstBlockNum = blockHeightGen
     let! nBlocks = Arb.generate<uint32>
     let! tlvs = queryChannelRangeTLVGen |> Gen.arrayOf
     return {
@@ -539,7 +539,7 @@ let private replyChannelRangeTLVGen n =
     ]
 let replyChannelRangeGen: Gen<ReplyChannelRangeMsg> = gen {
     let! ch = chainHashGen
-    let! firstBlockNum = Arb.generate<uint32> |> Gen.map(BlockHeight)
+    let! firstBlockNum = blockHeightGen
     let! nBlocks = Arb.generate<uint32>
     let! complete = Arb.generate<bool>
     let! n = Arb.generate<PositiveInt>

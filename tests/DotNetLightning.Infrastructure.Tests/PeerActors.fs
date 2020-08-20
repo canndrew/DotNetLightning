@@ -20,16 +20,16 @@ type internal PeerManagerEntity = {
     CM: IChannelManager
     EventAggregator: IEventAggregator
     NodeParams: ChainConfig
-    mutable CurrentHeight: int
+    mutable CurrentHeight: BlockHeight
     FundingTxProvider: IFundingTxProvider
 }
     with
     member this.PublishDummyBlockWith(txIncluded: Transaction list) =
-        this.CurrentHeight <- this.CurrentHeight + 1
+        this.CurrentHeight <- this.CurrentHeight + BlockHeightOffset32 1u
         let dummyBlockHeader = this.NodeParams.Network.NBitcoinNetwork.GetGenesis().Header
         let dummyBlock : BlockContent =
             let txWithIndex = txIncluded |> List.indexed |> List.map(fun iTx -> (fst iTx |> uint32), (snd iTx))
-            dummyBlockHeader, (this.CurrentHeight |> uint32 |> BlockHeight), txWithIndex
+            dummyBlockHeader, this.CurrentHeight, txWithIndex
         this.EventAggregator.Publish(OnChainEvent.BlockConnected(dummyBlock))
         
 

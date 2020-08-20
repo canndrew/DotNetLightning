@@ -11,6 +11,7 @@ let bytesOfNGen(n) = Gen.listOfLength n byteGen |> Gen.map(List.toArray)
 let uint48Gen = bytesOfNGen(6) |> Gen.map(fun bs -> UInt48.FromBytesBigEndian bs)
 let uint256Gen = bytesOfNGen(32) |> Gen.map(fun bs -> uint256(bs))
 let channelIdGen = uint256Gen |> Gen.map ChannelId.FromRawId
+let blockHeightGen = Arb.generate<uint32> |> Gen.map BlockHeight.FromBlocks
 let moneyGen = Arb.generate<uint64> |> Gen.map(Money.Satoshis)
 let lnMoneyGen = Arb.generate<uint64> |> Gen.map(LNMoney.MilliSatoshis)
 

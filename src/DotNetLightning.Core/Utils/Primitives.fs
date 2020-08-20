@@ -33,25 +33,28 @@ module Primitives =
 
     /// Absolute block height
     [<Struct>]
-    type BlockHeight = | BlockHeight of uint32 with
-        static member Zero = 0u |> BlockHeight
-        static member One = 1u |> BlockHeight
-        member x.Value = let (BlockHeight v) = x in v
+    type BlockHeight = {
+        Blocks: uint32
+    } with
+        static member FromBlocks(blocks: uint32) = { Blocks = blocks }
+        static member Zero = 0u |> BlockHeight.FromBlocks
+        static member One = 1u |> BlockHeight.FromBlocks
+
         member x.AsOffset() =
-            x.Value |> Checked.uint16 |> BlockHeightOffset16
+            x.Blocks |> Checked.uint16 |> BlockHeightOffset16
 
         static member (+) (a: BlockHeight, b: BlockHeightOffset16) =
-                a.Value + (uint32 b.Value ) |> BlockHeight
+                a.Blocks + (uint32 b.Value ) |> BlockHeight.FromBlocks
         static member (+) (a: BlockHeight, b: BlockHeightOffset32) =
-                a.Value + b.Value |> BlockHeight
+                a.Blocks + b.Value |> BlockHeight.FromBlocks
 
         static member (-) (a: BlockHeight, b: BlockHeightOffset16) =
-            a.Value - (uint32 b.Value) |> BlockHeight
+            a.Blocks - (uint32 b.Value) |> BlockHeight.FromBlocks
         static member (-) (a: BlockHeight, b: BlockHeightOffset32) =
-            a.Value - b.Value |> BlockHeight
+            a.Blocks - b.Value |> BlockHeight.FromBlocks
             
         static member (-) (a: BlockHeight, b: BlockHeight) =
-            a.Value - (b.Value) |> BlockHeightOffset32
+            a.Blocks - b.Blocks |> BlockHeightOffset32
 
     /// **Description**
     ///
@@ -366,7 +369,7 @@ module Primitives =
             let txOutIndex = NBitcoin.Utils.ToUInt16(b.[6..7], false)
 
             {
-                BlockHeight = bh |> BlockHeight
+                BlockHeight = bh |> BlockHeight.FromBlocks
                 BlockIndex = bi |> TxIndexInBlock
                 TxOutIndex = txOutIndex |> TxOutIndex
             }
@@ -376,12 +379,12 @@ module Primitives =
             
         member this.ToBytes(): byte [] =
             Array.concat [|
-                        NBitcoin.Utils.ToBytes(this.BlockHeight.Value, false).[1..3]
+                        NBitcoin.Utils.ToBytes(this.BlockHeight.Blocks, false).[1..3]
                         NBitcoin.Utils.ToBytes(this.BlockIndex.Value, false).[1..3]
                         NBitcoin.Utils.ToBytes(this.TxOutIndex.Value, false)
                     |]
         override this.ToString() =
-            sprintf "%dx%dx%d" this.BlockHeight.Value this.BlockIndex.Value this.TxOutIndex.Value
+            sprintf "%dx%dx%d" this.BlockHeight.Blocks this.BlockIndex.Value this.TxOutIndex.Value
             
         member this.AsString = this.ToString()
             
@@ -392,7 +395,7 @@ module Primitives =
             match (items.[0] |> UInt32.TryParse), (items.[1] |> UInt32.TryParse), (items.[2] |> UInt16.TryParse) with
             | (true, h), (true, blockI), (true, outputI) ->
                 {
-                    BlockHeight = h |> BlockHeight
+                    BlockHeight = h |> BlockHeight.FromBlocks
                     BlockIndex = blockI |> TxIndexInBlock
                     TxOutIndex = outputI |> TxOutIndex
                 } |> Ok

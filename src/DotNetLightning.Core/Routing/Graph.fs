@@ -306,12 +306,12 @@ module Graph =
             { RichWeight.Cost = edgeCost; Length = prev.Length + 1; CLTV = prev.CLTV + edge.Update.CLTVExpiryDelta; Weight = edgeCost.MilliSatoshi |> double }
         | Some wr ->
             let ({ Update = update; Desc = desc }) = edge
-            let channelBlockHeight = desc.ShortChannelId.BlockHeight.Value
+            let channelBlockHeight = desc.ShortChannelId.BlockHeight
             // every edge is weighted by funding block height where older blocks add less weight,
             let ageFactor =
-                RoutingHeuristics.normalize(channelBlockHeight |> double,
-                                            (currentBlockHeight - RoutingHeuristics.BLOCK_TIME_TWO_MONTHS).Value |> double,
-                                            currentBlockHeight.Value |> double)
+                RoutingHeuristics.normalize(channelBlockHeight.Blocks |> double,
+                                            (currentBlockHeight - RoutingHeuristics.BLOCK_TIME_TWO_MONTHS).Blocks |> double,
+                                            currentBlockHeight.Blocks |> double)
             // Every edge is weighted by channel capacity, larger channels and less weight
             let edgeMaxCapacity =
                 update.HTLCMaximumMSat |> Option.defaultValue (RoutingHeuristics.CAPACITY_CHANNEL_LOW)

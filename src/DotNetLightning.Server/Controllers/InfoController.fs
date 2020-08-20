@@ -24,7 +24,7 @@ type InfoController(chainConfigs: IOptionsSnapshot<ChainConfig>,
             NumPendingChannels = chanMan.GetPendingChannels() |> Seq.length
             NumActiveChannels = chanMan.GetActiveChannels() |> Seq.length
             NumInactiveChannels = chanMan.GetInactiveChannels() |> Seq.length
-            BlockHeight = watcher.CurrentTip |> fun (h, _) -> h.Value
+            BlockHeight = watcher.CurrentTip |> fun (h, _) -> h.Blocks
             NumPeers = peerMan.GetNumPeers()
             Alias = chainConfig.Alias
             Network = network.ToString()

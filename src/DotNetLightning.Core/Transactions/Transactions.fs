@@ -232,7 +232,7 @@ type SortableTxOut = {
                         | None, _ -> 0
                         | _, None -> 0
                         | Some a, Some b ->
-                            let c3  = a.CLTVExpiry.Value.CompareTo(b.CLTVExpiry.Value)
+                            let c3  = a.CLTVExpiry.Blocks.CompareTo(b.CLTVExpiry.Blocks)
                             if c3 <> 0 then
                                 c3
                             else
@@ -383,7 +383,7 @@ module Transactions =
         let htlcReceivedOutputsWithMetadata =
             trimReceivedHTLCs(localDustLimit) (spec)
             |> List.map(fun htlc ->
-                    let redeem = Scripts.htlcReceived (localHTLCPubKey) (remoteHTLCPubkey) (localRevocationPubKey) (htlc.Add.PaymentHash) (htlc.Add.CLTVExpiry.Value)
+                    let redeem = Scripts.htlcReceived (localHTLCPubKey) (remoteHTLCPubkey) (localRevocationPubKey) (htlc.Add.PaymentHash) (htlc.Add.CLTVExpiry.Blocks)
                     TxOut(htlc.Add.Amount.ToMoney(), redeem.WitHash.ScriptPubKey), Some htlc.Add)
         
         let obscuredCommitmentNumber =
@@ -515,7 +515,7 @@ module Transactions =
                 let tx = txb.AddCoins(scriptCoin)
                             .Send(dest.WitHash, amount)
                             .SendFees(fee)
-                            .SetLockTime(!> htlc.CLTVExpiry.Value)
+                            .SetLockTime(!> htlc.CLTVExpiry.Blocks)
                             .BuildTransaction(false)
                 tx.Version <- 2u
                 
@@ -539,7 +539,7 @@ module Transactions =
                           (htlc: UpdateAddHTLCMsg)
                           (n: Network)=
         let fee = feeratePerKw.CalculateFeeFromWeight(HTLC_SUCCESS_WEIGHT)
-        let redeem = Scripts.htlcReceived (localHTLCPubKey) (remoteHTLCPubKey) (localRevocationPubKey) (htlc.PaymentHash) (htlc.CLTVExpiry.Value)
+        let redeem = Scripts.htlcReceived (localHTLCPubKey) (remoteHTLCPubKey) (localRevocationPubKey) (htlc.PaymentHash) (htlc.CLTVExpiry.Blocks)
         let spk = redeem.WitHash.ScriptPubKey
         let spkIndex = findScriptPubKeyIndex commitTx spk
         let amount = htlc.Amount.ToMoney() - fee
@@ -629,7 +629,7 @@ module Transactions =
                                (feeRatePerKw: FeeRatePerKw)
                                (n: Network): Result<_, _> =
         let fee = feeRatePerKw.CalculateFeeFromWeight(CLAIM_HTLC_TIMEOUT_WEIGHT)
-        let redeem = Scripts.htlcReceived remoteHTLCPubKey localHTLCPubKey remoteRevocationPubKey htlc.PaymentHash htlc.CLTVExpiry.Value
+        let redeem = Scripts.htlcReceived remoteHTLCPubKey localHTLCPubKey remoteRevocationPubKey htlc.PaymentHash htlc.CLTVExpiry.Blocks
         let spk = redeem.WitHash.ScriptPubKey
         let spkIndex = findScriptPubKeyIndex commitTx spk
         let amount = htlc.Amount.ToMoney() - fee

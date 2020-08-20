@@ -34,35 +34,35 @@ let htlcs = [
               HTLCId = HTLCId.Zero;
               Amount = LNMoney.MilliSatoshis 1000000L
               PaymentHash = paymentPreImages.[0].Hash
-              CLTVExpiry = 500u |> BlockHeight;
+              CLTVExpiry = 500u |> BlockHeight.FromBlocks;
               OnionRoutingPacket = OnionPacket.LastPacket } }
     { DirectedHTLC.Direction = In;
       Add = { UpdateAddHTLCMsg.ChannelId = ChannelId.Zero;
               HTLCId = HTLCId(1UL);
               Amount = LNMoney.MilliSatoshis 2000000L
               PaymentHash = paymentPreImages.[1].Hash
-              CLTVExpiry = 501u |> BlockHeight;
+              CLTVExpiry = 501u |> BlockHeight.FromBlocks;
               OnionRoutingPacket = OnionPacket.LastPacket } }
     { DirectedHTLC.Direction = Out;
       Add = { UpdateAddHTLCMsg.ChannelId = ChannelId.Zero;
               HTLCId = HTLCId(2UL);
               Amount = LNMoney.MilliSatoshis 2000000L
               PaymentHash = paymentPreImages.[2].Hash
-              CLTVExpiry = 502u |> BlockHeight;
+              CLTVExpiry = 502u |> BlockHeight.FromBlocks;
               OnionRoutingPacket = OnionPacket.LastPacket } }
     { DirectedHTLC.Direction = Out;
       Add = { UpdateAddHTLCMsg.ChannelId = ChannelId.Zero;
               HTLCId = HTLCId(3UL);
               Amount = LNMoney.MilliSatoshis 3000000L
               PaymentHash = paymentPreImages.[3].Hash
-              CLTVExpiry = 503u |> BlockHeight;
+              CLTVExpiry = 503u |> BlockHeight.FromBlocks;
               OnionRoutingPacket = OnionPacket.LastPacket } }
     { DirectedHTLC.Direction = In;
       Add = { UpdateAddHTLCMsg.ChannelId = ChannelId.Zero;
               HTLCId = HTLCId(4UL);
               Amount = LNMoney.MilliSatoshis 4000000L
               PaymentHash = paymentPreImages.[4].Hash
-              CLTVExpiry = 504u |> BlockHeight;
+              CLTVExpiry = 504u |> BlockHeight.FromBlocks;
               OnionRoutingPacket = OnionPacket.LastPacket } }
 ]
 let htlcMap = htlcs |> List.map(fun htlc ->  htlc.Add.HTLCId, htlc) |> Map.ofList

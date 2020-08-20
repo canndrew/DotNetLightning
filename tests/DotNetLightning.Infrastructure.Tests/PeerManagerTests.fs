@@ -156,7 +156,7 @@ let tests = testList "PeerManagerTests" [
                     Id = IPEndPoint.Parse("127.0.0.3") :> EndPoint |> PeerId
                     EventAggregator = aliceEventAggregator
                     NodeParams = aliceNodeParams.Value
-                    CurrentHeight = 0
+                    CurrentHeight = BlockHeight.Zero
                     FundingTxProvider = Mock<IFundingTxProvider>().Create()
                     }
       let bobNodeSecret =
@@ -176,7 +176,7 @@ let tests = testList "PeerManagerTests" [
                   Id = IPEndPoint.Parse("127.0.0.2") :> EndPoint |> PeerId
                   EventAggregator = bobEventAggregator
                   NodeParams = aliceNodeParams.Value
-                  CurrentHeight = 0
+                  CurrentHeight = BlockHeight.Zero
                   FundingTxProvider = Mock<IFundingTxProvider>().Create()
                   }
       let actors = new PeerActors(alice, bob)

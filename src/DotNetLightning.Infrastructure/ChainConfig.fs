@@ -69,7 +69,7 @@ type ChainConfig() =
     /// If `max_accepted_htlcs` field from other node's `open_channel` or `accept_channel` is
     /// smaller than this, we won't open channel.
     member val MinMaxAcceptedHTLCs: uint16 = 5us with get, set
-    member val ExpiryDeltaBlocks: BlockHeight = BlockHeight 144u with get, set
+    member val ExpiryDeltaBlocks: BlockHeight = BlockHeight.FromBlocks 144u with get, set
     
     /// `htlc_minimum_msat` which we are going to send in `open_channel` message
     member val HTLCMinimumMSat: LNMoney = LNMoney.MilliSatoshis(1L) with get, set
