@@ -21,8 +21,9 @@ type LNMoneyUnit =
 /// (i.e. We might want to support this package in BTCPayServer.Lightning)
 /// refs: https://github.com/btcpayserver/BTCPayServer.Lightning/blob/f65a883a63bf607176a3b7b0baa94527ac592f5e/src/BTCPayServer.Lightning.Common/LightMoney.cs
 [<Struct>]
-type LNMoney = | LNMoney of int64 with
-
+type LNMoney = {
+    MilliSatoshi: int64
+} with
     static member private BitcoinStyle =
         NumberStyles.AllowLeadingWhite ||| NumberStyles.AllowTrailingWhite |||
         NumberStyles.AllowLeadingSign ||| NumberStyles.AllowDecimalPoint
@@ -34,8 +35,8 @@ type LNMoney = | LNMoney of int64 with
 
     static member private FromUnit(amount: decimal, lnUnit: LNMoneyUnit) =
         LNMoney.CheckMoneyUnit(lnUnit, "unit") |> ignore
-        let satoshi = Checked.op_Multiply (amount) (decimal lnUnit)
-        LNMoney(Checked.int64 satoshi)
+        let msat = Checked.int64 <| Checked.op_Multiply (amount) (decimal lnUnit)
+        LNMoney.MilliSatoshis msat
 
     static member FromMoney (money: Money) =
         LNMoney.Satoshis money.Satoshi
@@ -49,23 +50,17 @@ type LNMoney = | LNMoney of int64 with
     static member Satoshis(sats: int64) =
         LNMoney.MilliSatoshis(Checked.op_Multiply 1000L sats)
 
-    static member inline Satoshis(sats) =
-        LNMoney.Satoshis(int64 sats)
-
     static member Satoshis(sats: uint64) =
-        LNMoney.MilliSatoshis(Checked.op_Multiply 1000UL sats)
+        LNMoney.Satoshis(Checked.int64 sats)
 
-    static member MilliSatoshis(sats: int64) =
-        LNMoney(sats)
+    static member MilliSatoshis(msats: int64) =
+        { MilliSatoshi = msats }
 
-    static member inline MilliSatoshis(sats) =
-        LNMoney(int64 sats)
+    static member MilliSatoshis(msats: uint64) =
+        { MilliSatoshi = Checked.int64 msats }
 
-    static member MilliSatoshis(sats: uint64) =
-        LNMoney(Checked.int64 sats)
-
-    static member Zero = LNMoney(0L)
-    static member One = LNMoney(1L)
+    static member Zero = LNMoney.MilliSatoshis 0L
+    static member One = LNMoney.MilliSatoshis 1L
     static member TryParse(bitcoin: string, result: outref<LNMoney>) =
         match Decimal.TryParse(bitcoin, LNMoney.BitcoinStyle, CultureInfo.InvariantCulture) with
         | false, _ -> false
@@ -81,32 +76,30 @@ type LNMoney = | LNMoney of int64 with
         | _ -> raise (FormatException("Impossible to parse the string in a bitcoin amount"))
 
     // -------- Arithmetic operations
-    static member (+) (LNMoney a, LNMoney b) = LNMoney(a + b)
-    static member (-) (LNMoney a, LNMoney b) = LNMoney(a - b)
-    static member (*) (LNMoney a, LNMoney b) = LNMoney(a * b)
-    static member (/) (LNMoney a, LNMoney b) = LNMoney(a / b)
-    static member inline (/) (LNMoney a, b) = LNMoney(a / (int64 b))
-    static member inline (+) (LNMoney a, b) = LNMoney(a + (int64 b))
-    static member inline (-) (LNMoney a, b) = LNMoney(a - (int64 b))
-    static member inline (*) (LNMoney a, b) = LNMoney(a * (int64 b))
-    static member Max(LNMoney a, LNMoney b) = if a >= b then LNMoney a else LNMoney b
-    static member Min(LNMoney a, LNMoney b) = if a <= b then LNMoney a else LNMoney b
+    static member (+) (a: LNMoney, b: LNMoney) = LNMoney.MilliSatoshis (a.MilliSatoshi + b.MilliSatoshi)
+    static member (-) (a: LNMoney, b: LNMoney) = LNMoney.MilliSatoshis (a.MilliSatoshi - b.MilliSatoshi)
+    static member (*) (a: LNMoney, b: int64) = LNMoney.MilliSatoshis (a.MilliSatoshi * b)
+    static member (*) (a: int64, b: LNMoney) = LNMoney.MilliSatoshis (a * b.MilliSatoshi)
+    static member (/) (a: LNMoney, b: int64) = LNMoney.MilliSatoshis (a.MilliSatoshi / b)
+    static member (/) (a: LNMoney, b: LNMoney) = a.MilliSatoshi / b.MilliSatoshi
+    static member Max(a: LNMoney, b: LNMoney) = if a.MilliSatoshi >= b.MilliSatoshi then a else b
+    static member Min(a: LNMoney, b: LNMoney) = if a.MilliSatoshi <= b.MilliSatoshi then a else b
     
     static member MaxValue =
-        let maxSatoshis = 21000000UL * (uint64 Money.COIN)
+        let maxSatoshis = 2099999997690000L
         LNMoney.Satoshis maxSatoshis
-
-    static member op_Implicit (money: Money) = LNMoney.Satoshis(money.Satoshi)
 
     // --------- Utilities
     member this.Abs() =
-        if this < LNMoney.Zero then LNMoney(-this.Value) else this
+        if this < LNMoney.Zero then LNMoney.MilliSatoshis(-this.MilliSatoshi) else this
 
-    member this.MilliSatoshi = let (LNMoney v) = this in v
-    member this.Satoshi = this.MilliSatoshi / 1000L
-    member this.BTC = this.MilliSatoshi / (int64 LNMoneyUnit.BTC)
-    member this.Value = this.MilliSatoshi
-    member this.ToMoney() = this.Satoshi |> Money
+    member this.SatoshiRoundDown(): int64 = this.MilliSatoshi / (int64 LNMoneyUnit.Satoshi)
+    member this.BTCRoundDown(): int64 = this.MilliSatoshi / (int64 LNMoneyUnit.BTC)
+
+    member this.Satoshi(): decimal = (decimal this.MilliSatoshi) / (decimal LNMoneyUnit.Satoshi)
+    member this.BTC(): decimal = (decimal this.MilliSatoshi) / (decimal LNMoneyUnit.BTC)
+
+    member this.ToMoney() = this.SatoshiRoundDown() |> Money
 
     member this.Split(parts: int): LNMoney seq =
         if parts <= 0 then

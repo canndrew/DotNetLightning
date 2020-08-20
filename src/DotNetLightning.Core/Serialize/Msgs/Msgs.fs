@@ -1328,10 +1328,10 @@ type FailureMsg = {
                 | TemporaryChannelFailure update ->
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | AmountBelowMinimum (amount, update) ->
-                    w.Write(uint64 amount.Value, false)
+                    w.Write(uint64 amount.MilliSatoshi, false)
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | FeeInsufficient (amount, update) ->
-                    w.Write(uint64 amount.Value, false)
+                    w.Write(uint64 amount.MilliSatoshi, false)
                     (update :> ILightningSerializable<ChannelUpdateMsg>).SerializeWithLen(w)
                 | ChannelDisabled (flags, update) ->
                     w.Write(flags, false)
@@ -1344,7 +1344,7 @@ type FailureMsg = {
                 | FinalIncorrectCLTVExpiry (expiry) ->
                     w.Write(expiry.Value, false)
                 | FinalIncorrectCLTVAmount (amountMSat) ->
-                    w.Write(amountMSat.Value, false)
+                    w.Write(amountMSat.MilliSatoshi, false)
                 | FailureMsgData.Unknown b ->
                     w.Write(b)
                 | _ ->

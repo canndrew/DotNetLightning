@@ -360,9 +360,9 @@ module Transactions =
         let commitFee = commitTxFee localDustLimit spec
         let (toLocalAmount, toRemoteAmount) =
             if (localIsFunder) then
-                (spec.ToLocal.Satoshi |> Money.Satoshis) - commitFee, spec.ToRemote.Satoshi |> Money.Satoshis
+                spec.ToLocal.ToMoney() - commitFee, spec.ToRemote.ToMoney()
             else
-                (spec.ToLocal.Satoshi |> Money.Satoshis), (spec.ToRemote.Satoshi |> Money.Satoshis) - commitFee
+                spec.ToLocal.ToMoney(), spec.ToRemote.ToMoney() - commitFee
 
         let toLocalDelayedOutput_opt =
             if (toLocalAmount >= localDustLimit) then
