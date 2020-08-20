@@ -524,7 +524,7 @@ with
     interface ILightningSerializable<OpenChannelMsg> with
         member this.Deserialize(ls) =
             this.Chainhash <- ls.ReadUInt256(true)
-            this.TemporaryChannelId <- ChannelId(ls.ReadUInt256(true))
+            this.TemporaryChannelId <- ls.ReadChannelId()
             this.FundingSatoshis <- Money.Satoshis(ls.ReadUInt64(false))
             this.PushMSat <- LNMoney.MilliSatoshis(ls.ReadUInt64(false))
             this.DustLimitSatoshis <- Money.Satoshis(ls.ReadUInt64(false))
@@ -546,7 +546,7 @@ with
                 ls.ReadWithLen() |> Script |> Some
         member this.Serialize(ls) =
             ls.Write(this.Chainhash, true)
-            ls.Write(this.TemporaryChannelId.Value, true)
+            ls.Write(this.TemporaryChannelId)
             ls.Write(this.FundingSatoshis.Satoshi, false)
             ls.Write(this.PushMSat.MilliSatoshi, false)
             ls.Write(this.DustLimitSatoshis.Satoshi, false)
@@ -587,7 +587,7 @@ with
     interface IChannelMsg
     interface ILightningSerializable<AcceptChannelMsg> with
         member this.Deserialize(ls) =
-            this.TemporaryChannelId <- ChannelId(ls.ReadUInt256(true))
+            this.TemporaryChannelId <- ls.ReadChannelId()
             this.DustLimitSatoshis <- ls.ReadUInt64(false) |> Money.Satoshis
             this.MaxHTLCValueInFlightMsat <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
             this.ChannelReserveSatoshis <- ls.ReadUInt64(false) |> Money.Satoshis
@@ -605,7 +605,7 @@ with
                 if (ls.Position = ls.Length) then None else
                 ls.ReadWithLen() |> Script |> Some
         member this.Serialize(ls) =
-            ls.Write(this.TemporaryChannelId.Value.ToBytes())
+            ls.Write(this.TemporaryChannelId)
             ls.Write(this.DustLimitSatoshis.Satoshi, false)
             ls.Write(this.MaxHTLCValueInFlightMsat.MilliSatoshi, false)
             ls.Write(this.ChannelReserveSatoshis.Satoshi, false)
@@ -632,12 +632,12 @@ with
     interface IChannelMsg
     interface ILightningSerializable<FundingCreatedMsg> with
         member this.Deserialize(ls) =
-            this.TemporaryChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.TemporaryChannelId <- ls.ReadChannelId()
             this.FundingTxId <- ls.ReadUInt256(true) |> TxId
             this.FundingOutputIndex <- ls.ReadUInt16(false) |> TxOutIndex
             this.Signature <- ls.ReadECDSACompact()
         member this.Serialize(ls) =
-            ls.Write(this.TemporaryChannelId.Value.ToBytes())
+            ls.Write(this.TemporaryChannelId)
             ls.Write(this.FundingTxId.Value.ToBytes())
             ls.Write(this.FundingOutputIndex.Value, false)
             ls.Write(this.Signature)
@@ -651,10 +651,10 @@ with
     interface IChannelMsg
     interface ILightningSerializable<FundingSignedMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ChannelId(ls.ReadUInt256(true))
+            this.ChannelId <- ls.ReadChannelId()
             this.Signature <- ls.ReadECDSACompact()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.Signature)
 
 [<CLIMutable>]
@@ -666,10 +666,10 @@ with
     interface IChannelMsg
     interface ILightningSerializable<FundingLockedMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.NextPerCommitmentPoint <- ls.ReadCommitmentPubKey()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.NextPerCommitmentPoint.ToByteArray())
 
 [<CLIMutable>]
@@ -681,10 +681,10 @@ with
     interface IChannelMsg
     interface ILightningSerializable<ShutdownMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.ScriptPubKey <- ls.ReadScript()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.WriteWithLen(this.ScriptPubKey.ToBytes())
 
 [<CLIMutable>]
@@ -697,11 +697,11 @@ with
     interface IChannelMsg
     interface ILightningSerializable<ClosingSignedMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.FeeSatoshis <- ls.ReadUInt64(false) |> Money.Satoshis
             this.Signature <- ls.ReadECDSACompact()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.FeeSatoshis.Satoshi, false)
             ls.Write(this.Signature)
 
@@ -719,14 +719,14 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<UpdateAddHTLCMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.Amount <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
             this.PaymentHash <- ls.ReadUInt256(false) |> PaymentHash
             this.CLTVExpiry <- ls.ReadUInt32(false) |> BlockHeight
             this.OnionRoutingPacket <- ILightningSerializable.deserialize<OnionPacket>(ls)
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.HTLCId.Value, false)
             ls.Write(this.Amount.MilliSatoshi, false)
             ls.Write(this.PaymentHash.ToBytes())
@@ -744,11 +744,11 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<UpdateFulfillHTLCMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.PaymentPreimage <- ls.ReadBytes PaymentPreimage.LENGTH |> PaymentPreimage.Create
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.HTLCId.Value, false)
             ls.Write(this.PaymentPreimage.ToByteArray())
 
@@ -763,11 +763,11 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<UpdateFailHTLCMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.Reason <- { Data = ls.ReadWithLen() }
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.HTLCId.Value, false)
             ls.WriteWithLen(this.Reason.Data)
 
@@ -783,12 +783,12 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<UpdateFailMalformedHTLCMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.HTLCId <- ls.ReadUInt64(false) |> HTLCId
             this.Sha256OfOnion <- ls.ReadUInt256(true)
             this.FailureCode <- ls.ReadUInt16(false) |> OnionError.FailureCode.FromCode
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.HTLCId.Value, false)
             ls.Write(this.Sha256OfOnion, true)
             ls.Write(this.FailureCode.Code, false)
@@ -803,13 +803,13 @@ with
     interface IHTLCMsg
     interface ILightningSerializable<CommitmentSignedMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.Signature <- ls.ReadECDSACompact()
             this.HTLCSignatures <- 
                 let len = ls.ReadUInt16(false)
                 [ 1us..len ] |> List.map(fun _ -> ls.ReadECDSACompact())
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.Signature)
             ls.Write((uint16)this.HTLCSignatures.Length, false)
             this.HTLCSignatures |> List.iter (ls.Write)
@@ -824,11 +824,11 @@ with
     interface IHTLCMsg
     interface ILightningSerializable<RevokeAndACKMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.PerCommitmentSecret <- ls.ReadRevocationKey()
             this.NextPerCommitmentPoint <- ls.ReadCommitmentPubKey()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.PerCommitmentSecret.ToByteArray())
             ls.Write(this.NextPerCommitmentPoint.ToByteArray())
 
@@ -842,10 +842,10 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<UpdateFeeMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.FeeRatePerKw <- ls.ReadUInt32(false) |> FeeRatePerKw
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.FeeRatePerKw.Value, false)
 
 [<CLIMutable>]
@@ -881,12 +881,12 @@ with
     interface IChannelMsg
     interface ILightningSerializable<ChannelReestablishMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.NextCommitmentNumber <- ls.ReadCommitmentNumber()
             this.NextRevocationNumber <- ls.ReadCommitmentNumber()
             this.DataLossProtect <- ls.TryReadAll() |> Option.map ILightningSerializable.fromBytes<DataLossProtect>
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write this.NextCommitmentNumber
             ls.Write this.NextRevocationNumber
             match this.DataLossProtect with
@@ -904,12 +904,12 @@ with
     interface IRoutingMsg
     interface ILightningSerializable<AnnouncementSignaturesMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.ShortChannelId <- ls.ReadUInt64(false) |> ShortChannelId.FromUInt64
             this.NodeSignature <- ls.ReadECDSACompact()
             this.BitcoinSignature <- ls.ReadECDSACompact()
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.ShortChannelId)
             ls.Write(this.NodeSignature)
             ls.Write(this.BitcoinSignature)
@@ -1366,11 +1366,11 @@ type ErrorMsg =
                 | id when id = uint256.Zero ->
                     this.ChannelId <- All
                 | id ->
-                    this.ChannelId <- SpecificChannel(ChannelId id)
+                    this.ChannelId <- SpecificChannel(ChannelId.FromRawId id)
                 this.Data <- ls.ReadWithLen()
             member this.Serialize(ls) =
                 match this.ChannelId with
-                | SpecificChannel (ChannelId id) -> ls.Write(id.ToBytes())
+                | SpecificChannel channelId -> ls.Write(channelId)
                 | All -> ls.Write(Array.zeroCreate 32)
                 ls.WriteWithLen(this.Data)
 
@@ -1586,9 +1586,9 @@ with
     interface IUpdateMsg
     interface ILightningSerializable<MonoHopUnidirectionalPaymentMsg> with
         member this.Deserialize(ls) =
-            this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
+            this.ChannelId <- ls.ReadChannelId()
             this.Amount <- ls.ReadUInt64(false) |> LNMoney.MilliSatoshis
         member this.Serialize(ls) =
-            ls.Write(this.ChannelId.Value.ToBytes())
+            ls.Write(this.ChannelId)
             ls.Write(this.Amount.MilliSatoshi, false)
 

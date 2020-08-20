@@ -20,7 +20,7 @@ module NBitcoinExtensions =
             let mutable res = this.Clone().Hash.ToBytes()
             res.[30] <- res.[30] ^^^ (uint8 (this.N >>> 8) &&& 0xffuy)
             res.[31] <- res.[31] ^^^ (uint8 (this.N >>> 0) &&& 0xffuy)
-            res  |> uint256 |> ChannelId
+            res  |> uint256 |> ChannelId.FromRawId
 
     type PSBT with
         member this.GetMatchingSig(pubkey: PubKey) =

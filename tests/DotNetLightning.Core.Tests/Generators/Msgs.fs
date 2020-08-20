@@ -41,7 +41,7 @@ let initGen =
         (initTLVGen |> Gen.map(Array.singleton))
 
 let errorMsgGen = gen {
-    let specificC = SpecificChannel <!> (ChannelId <!> uint256Gen)
+    let specificC = SpecificChannel <!> channelIdGen
     let allC = Gen.constant WhichChannel.All
     let! c = Gen.oneof [specificC; allC]
     let! d = bytesGen
@@ -81,7 +81,7 @@ let openChannelGen =
         }
     constructor
         <!> (uint256Gen)
-        <*> (temporaryChannelGen)
+        <*> (channelIdGen)
         <*> (moneyGen)
         <*> (lnMoneyGen)
         <*> (moneyGen)
@@ -121,7 +121,7 @@ let acceptChannelGen =
         }
 
     constructor
-        <!> temporaryChannelGen
+        <!> channelIdGen
         <*> moneyGen
         <*> lnMoneyGen
         <*> moneyGen
@@ -147,13 +147,13 @@ let fundingCreatedGen =
         }
 
     constructor
-        <!> temporaryChannelGen
+        <!> channelIdGen
         <*> (TxId <!> uint256Gen)
         <*> (TxOutIndex <!> Arb.generate<uint16>)
         <*> signatureGen
 
 let fundingSignedGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! s = signatureGen
     return {
         FundingSignedMsg.ChannelId = c
@@ -162,19 +162,19 @@ let fundingSignedGen = gen {
 }
 
 let fundingLockedGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! pk = commitmentPubKeyGen
     return {ChannelId = c; NextPerCommitmentPoint = pk}
 }
 
 let shutdownGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! sc = pushScriptGen 
     return { ChannelId = c; ScriptPubKey = sc }
 }
 
 let closingSignedGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! m = moneyGen
     let! s = signatureGen
     return { ChannelId=c; FeeSatoshis=m; Signature=s}
@@ -189,7 +189,7 @@ let onionPacketGen = gen {
 }
 
 let updateAddHTLCGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! amount = lnMoneyGen
     let! paymentHash = PaymentHash <!> uint256Gen
@@ -206,7 +206,7 @@ let updateAddHTLCGen = gen {
 }
 
 let updateFulfillHTLCGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! paymentPreimage = PaymentPreimage.Create <!> bytesOfNGen PaymentPreimage.LENGTH
     return { ChannelId = c; HTLCId = htlc; PaymentPreimage = paymentPreimage }
@@ -214,7 +214,7 @@ let updateFulfillHTLCGen = gen {
 
 
 let updateFailHTLCGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! reason = bytesGen |> Gen.map (fun bs -> { Data = bs})
     return {
@@ -225,7 +225,7 @@ let updateFailHTLCGen = gen {
 }
 
 let updateFailMalformedHTLCGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! htlc = HTLCId <!> Arb.generate<uint64>
     let! sha256 = uint256Gen
     let! ec = FailureCode.FromCode <!> Arb.generate<uint16>
@@ -238,7 +238,7 @@ let updateFailMalformedHTLCGen = gen {
 }
 
 let commitmentSignedGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! s = signatureGen
     let! n = Arb.generate<uint16>
     let! ss = Gen.listOfLength (int n) signatureGen
@@ -250,7 +250,7 @@ let commitmentSignedGen = gen {
 }
 
 let revokeAndACKGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! revocationKey = revocationKeyGen
     let! pk = commitmentPubKeyGen 
     return {
@@ -260,7 +260,7 @@ let revokeAndACKGen = gen {
     }
 }
 let updateFeeGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! fr = FeeRatePerKw <!> Arb.generate<uint32>
     return {
         ChannelId = c
@@ -278,7 +278,7 @@ let private dataLossProtectGen = gen {
 }
 
 let channelReestablishGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! n1 = commitmentNumberGen
     let! n2 = commitmentNumberGen
     let! d = Gen.optionOf dataLossProtectGen
@@ -292,7 +292,7 @@ let channelReestablishGen = gen {
 }
 
 let announcementSignaturesGen = gen {
-    let! c = ChannelId <!> uint256Gen
+    let! c = channelIdGen
     let! s = ShortChannelId.FromUInt64 <!> Arb.generate<uint64>
     let! ns = signatureGen
     let! bs = signatureGen

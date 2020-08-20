@@ -145,6 +145,8 @@ type LightningWriterStream(inner: Stream) =
         this.Inner.WriteByte(data.Blue)
     member this.Write(commitmentNumber: CommitmentNumber) =
         this.Write((UInt48.MaxValue - commitmentNumber.Index).UInt64, false)
+    member this.Write(channelId: ChannelId) =
+        this.Write(channelId.RawId.ToBytes())
 
     member this.WriteWithLen(data: byte[]) =
         let length = data.Length
@@ -341,6 +343,9 @@ type LightningReaderStream(inner: Stream) =
     member this.ReadCommitmentNumber() =
         let n = this.ReadUInt64 false
         CommitmentNumber <| (UInt48.MaxValue - (UInt48.FromUInt64 n))
+    member this.ReadChannelId() =
+        let rawId = this.ReadUInt256 true
+        ChannelId.FromRawId rawId
 
     member this.ReadECDSACompact() =
         let data = this.ReadBytes(64)

@@ -31,7 +31,7 @@ let temporaryChannelId =
     "5555555555555555555555555555555555555555555555555555555555555555"
     |> hex.DecodeData
     |> uint256
-    |> ChannelId
+    |> ChannelId.FromRawId
     
             
 let defaultFinalScriptPubKey =

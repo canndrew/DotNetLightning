@@ -68,7 +68,7 @@ module SerializationTest =
     let testsRustLightningSerialization =
         testList "SerializationTest ported from rust-lightning" [
             testCase "channel_reestablish no secret" <| fun _ ->
-                let cid = ChannelId (uint256([|4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0|] |> Array.map((uint8)))) 
+                let cid = ChannelId.FromRawId (uint256([|4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0|] |> Array.map((uint8)))) 
                 let channelReestablishMsg = {
                     ChannelId = cid
                     NextCommitmentNumber = CommitmentNumber <| (UInt48.MaxValue - UInt48.FromUInt64 3UL)
@@ -83,7 +83,7 @@ module SerializationTest =
 
             testCase "channel_reestablish with secret" <| fun _ ->
                 let channelReestablishMsg = {
-                    ChannelId = ChannelId(uint256([|4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0 |] |> Array.map(uint8)))
+                    ChannelId = ChannelId.FromRawId(uint256([|4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0 |] |> Array.map(uint8)))
                     NextCommitmentNumber = CommitmentNumber <| (UInt48.MaxValue - UInt48.FromUInt64 3UL)
                     NextRevocationNumber = CommitmentNumber <| (UInt48.MaxValue - UInt48.FromUInt64 4UL)
                     DataLossProtect = OptionalField.Some <| {
@@ -104,7 +104,7 @@ module SerializationTest =
                 let sig1 = signMessageWith privKey1 "01010101010101010101010101010101"
                 let sig2 = signMessageWith privKey1 "02020202020202020202020202020202"
                 let actual = { 
-                    ChannelId = ChannelId(uint256([| 4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0 |] |> Array.map(uint8)))
+                    ChannelId = ChannelId.FromRawId(uint256([| 4; 0; 0; 0; 0; 0; 0; 0; 5; 0; 0; 0; 0; 0; 0; 0; 6; 0; 0; 0; 0; 0; 0; 0; 7; 0; 0; 0; 0; 0; 0; 0 |] |> Array.map(uint8)))
                     ShortChannelId = ShortChannelId.FromUInt64(2316138423780173UL)
                     NodeSignature = sig1
                     BitcoinSignature = sig2
@@ -470,7 +470,7 @@ module SerializationTest =
                 let openChannelTestCore(nonBitcoinChainHash: bool, randomBit: bool, shutdown: bool) =
                     let openChannelMsg = {
                         Chainhash = if (not nonBitcoinChainHash) then uint256(hex.DecodeData("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")) else uint256(hex.DecodeData("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"))
-                        TemporaryChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                        TemporaryChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                         FundingSatoshis = Money.Satoshis(1311768467284833366UL)
                         PushMSat = LNMoney.MilliSatoshis(2536655962884945560L)
                         DustLimitSatoshis = Money.Satoshis(3608586615801332854UL)
@@ -512,7 +512,7 @@ module SerializationTest =
             testCase "accept_channel" <| fun _ ->
                 let acceptChannelTestCore(shutdown: bool) =
                     let acceptChannelMsg = {
-                        AcceptChannelMsg.TemporaryChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy|]))
+                        AcceptChannelMsg.TemporaryChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy|]))
                         DustLimitSatoshis = Money.Satoshis(1311768467284833366L)
                         MaxHTLCValueInFlightMsat = LNMoney.MilliSatoshis(2536655962884945560L)
                         ChannelReserveSatoshis = Money.Satoshis(3608586615801332854L)
@@ -540,7 +540,7 @@ module SerializationTest =
                 let txData = hex.DecodeData("c2d4449afa8d26140898dd54d3390b057ba2a5afcf03ba29d7dc0d8b9ffe966e")
                 Array.Reverse txData
                 let fundingCreatedMsg = {
-                    FundingCreatedMsg.TemporaryChannelId = ChannelId(uint256[| for _ in 0..31 -> 2uy|])
+                    FundingCreatedMsg.TemporaryChannelId = ChannelId.FromRawId(uint256[| for _ in 0..31 -> 2uy|])
                     FundingTxId = TxId(uint256(txData, true))
                     FundingOutputIndex = 255us |> TxOutIndex
                     Signature = sig1
@@ -552,7 +552,7 @@ module SerializationTest =
             testCase "funding_signed" <| fun _ ->
                 let sig1 = signMessageWith privKey1 "01010101010101010101010101010101"
                 let fundingSignedMsg = {
-                    FundingSignedMsg.ChannelId = ChannelId(uint256[| for _ in 0..31 -> 2uy|])
+                    FundingSignedMsg.ChannelId = ChannelId.FromRawId(uint256[| for _ in 0..31 -> 2uy|])
                     Signature = sig1
                 }
                 let expected = hex.DecodeData("0202020202020202020202020202020202020202020202020202020202020202d977cb9b53d93a6ff64bb5f1e158b4094b66e798fb12911168a3ccdf80a83096340a6a95da0ae8d9f776528eecdbb747eb6b545495a4319ed5378e35b21e073a")
@@ -560,7 +560,7 @@ module SerializationTest =
                 ()
             testCase "funding_locked" <| fun _ ->
                 let fundingLockedMsg = {
-                    FundingLockedMsg.ChannelId = ChannelId(uint256[| for _ in 0..31 -> 2uy|])
+                    FundingLockedMsg.ChannelId = ChannelId.FromRawId(uint256[| for _ in 0..31 -> 2uy|])
                     NextPerCommitmentPoint = CommitmentPubKey pubkey1
                 }
                 let expected = hex.DecodeData("0202020202020202020202020202020202020202020202020202020202020202031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f")
@@ -578,7 +578,7 @@ module SerializationTest =
                         else
                             script.WitHash.ScriptPubKey
                     let shutdownMsg = {
-                        ShutdownMsg.ChannelId = ChannelId(uint256[| for _ in 0..31 -> 2uy|])
+                        ShutdownMsg.ChannelId = ChannelId.FromRawId(uint256[| for _ in 0..31 -> 2uy|])
                         ScriptPubKey = spk
                     }
                     let mutable expected = hex.DecodeData("0202020202020202020202020202020202020202020202020202020202020202")
@@ -603,7 +603,7 @@ module SerializationTest =
                     HMAC = uint256([| for _ in 0..31 -> 2uy |])
                 }
                 let updateAddHtlcMsg = {
-                    UpdateAddHTLCMsg.ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    UpdateAddHTLCMsg.ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     HTLCId = HTLCId(2316138423780173UL)
                     Amount = LNMoney.MilliSatoshis 3608586615801332854L
                     PaymentHash = PaymentHash(uint256[| for _ in 0..31 -> 1uy |])
@@ -615,7 +615,7 @@ module SerializationTest =
 
             testCase "update_fulfill_htlc" <| fun _ ->
                 let updateFulfillHTLCMsg = {
-                    ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     HTLCId = HTLCId(2316138423780173UL)
                     PaymentPreimage = PaymentPreimage.Create([| for _ in 0..(PaymentPreimage.LENGTH - 1) -> 1uy |])
                 }
@@ -626,7 +626,7 @@ module SerializationTest =
                     Data = [| for _ in 0..31 -> 1uy |]
                 }
                 let updateFailHTLCMsg = {
-                    ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     HTLCId = HTLCId(2316138423780173UL)
                     Reason = reason
                 }
@@ -634,7 +634,7 @@ module SerializationTest =
                 CheckArrayEqual (updateFailHTLCMsg.ToBytes()) expected
             testCase "update_fail_malformed_htlc" <| fun _ ->
                 let updateFailMalformedHTLCMsg = {
-                    ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     HTLCId = HTLCId(2316138423780173UL)
                     Sha256OfOnion = uint256([| for _ in 0..31 -> 1uy |])
                     FailureCode = OnionError.FailureCode.FromCode 255us
@@ -648,7 +648,7 @@ module SerializationTest =
                     let sig3 = signMessageWith privKey3 "01010101010101010101010101010101"
                     let sig4 = signMessageWith privKey4 "01010101010101010101010101010101"
                     let commitmentSignedMsg = {
-                        ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                        ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                         Signature = sig1
                         HTLCSignatures = if htlcs then [ sig2; sig3; sig4 ] else []
                     }
@@ -663,7 +663,7 @@ module SerializationTest =
                 testCommitmentSignedCore false
             testCase "revoke_and_ack" <| fun _ ->
                 let revokeAndACKMsg = {
-                    ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     PerCommitmentSecret =
                         RevocationKey.FromBytes
                             [| for _ in 0..(PaymentPreimage.LENGTH - 1) -> 1uy |]
@@ -673,7 +673,7 @@ module SerializationTest =
                 CheckArrayEqual (revokeAndACKMsg.ToBytes()) expected
             testCase "update_fee" <| fun _ ->
                 let updateFeeMsg = {
-                    ChannelId = ChannelId(uint256([| for _ in 0..31 -> 2uy |]))
+                    ChannelId = ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |]))
                     FeeRatePerKw = FeeRatePerKw(20190119u)
                 }
                 let expected = hex.DecodeData("0202020202020202020202020202020202020202020202020202020202020202013413a7")
@@ -704,7 +704,7 @@ module SerializationTest =
 
             testCase "error" <| fun _ ->
                 let errorMsg = {
-                    ChannelId = WhichChannel.SpecificChannel(ChannelId(uint256([| for _ in 0..31 -> 2uy |])))
+                    ChannelId = WhichChannel.SpecificChannel(ChannelId.FromRawId(uint256([| for _ in 0..31 -> 2uy |])))
                     Data = ascii.GetBytes("rust-lightning")
                 }
                 let expected = hex.DecodeData("0202020202020202020202020202020202020202020202020202020202020202000e727573742d6c696768746e696e67")
