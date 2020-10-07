@@ -449,19 +449,19 @@ module Primitives =
             CommitmentNumber UInt48.MaxValue
 
         static member ObscureFactor (isFunder: bool)
-                                    (localPaymentBasePoint: PubKey)
-                                    (remotePaymentBasePoint: PubKey)
+                                    (localPaymentBasepoint: PubKey)
+                                    (remotePaymentBasepoint: PubKey)
                                         : UInt48 =
             let pubKeysHash =
                 if isFunder then
                     let ba =
                         Array.concat
-                            (seq [ yield localPaymentBasePoint.ToBytes(); yield remotePaymentBasePoint.ToBytes() ])
+                            (seq [ yield localPaymentBasepoint.ToBytes(); yield remotePaymentBasepoint.ToBytes() ])
                     Hashes.SHA256 ba
                 else
                     let ba =
                         Array.concat
-                            (seq [ yield remotePaymentBasePoint.ToBytes(); yield localPaymentBasePoint.ToBytes() ])
+                            (seq [ yield remotePaymentBasepoint.ToBytes(); yield localPaymentBasepoint.ToBytes() ])
                     Hashes.SHA256 ba
             UInt48.FromBytesBigEndian pubKeysHash.[26..]
 
@@ -484,14 +484,14 @@ module Primitives =
                 Some <| CommitmentNumber(UInt48.FromUInt64 prev)
 
         member this.Obscure (isFunder: bool)
-                            (localPaymentBasePoint: PubKey)
-                            (remotePaymentBasePoint: PubKey)
+                            (localPaymentBasepoint: PubKey)
+                            (remotePaymentBasepoint: PubKey)
                                 : ObscuredCommitmentNumber =
             let obscureFactor =
                 CommitmentNumber.ObscureFactor
                     isFunder
-                    localPaymentBasePoint
-                    remotePaymentBasePoint
+                    localPaymentBasepoint
+                    remotePaymentBasepoint
             ObscuredCommitmentNumber((UInt48.MaxValue - this.Index) ^^^ obscureFactor)
 
     // FIXME: change to DU or record instead of adding [<Struct>]?
@@ -525,13 +525,13 @@ module Primitives =
                 |> Some
 
         member this.Unobscure (isFunder: bool)
-                              (localPaymentBasePoint: PubKey)
-                              (remotePaymentBasePoint: PubKey)
+                              (localPaymentBasepoint: PubKey)
+                              (remotePaymentBasepoint: PubKey)
                                   : CommitmentNumber =
             let obscureFactor =
                 CommitmentNumber.ObscureFactor
                     isFunder
-                    localPaymentBasePoint
-                    remotePaymentBasePoint
+                    localPaymentBasepoint
+                    remotePaymentBasepoint
             CommitmentNumber(UInt48.MaxValue - (this.ObscuredIndex ^^^ obscureFactor))
 

@@ -331,8 +331,8 @@ module Transactions =
 
     let getCommitTxNumber (commitTx: Transaction)
                           (isFunder: bool)
-                          (localPaymentBasePoint: PubKey)
-                          (remotePaymentBasePoint: PubKey)
+                          (localPaymentBasepoint: PubKey)
+                          (remotePaymentBasepoint: PubKey)
                               : Option<CommitmentNumber> =
         let obscuredCommitmentNumberOpt =
             ObscuredCommitmentNumber.TryFromLockTimeAndSequence
@@ -343,8 +343,8 @@ module Transactions =
         | Some obscuredCommitmentNumber ->
             Some <| obscuredCommitmentNumber.Unobscure
                 isFunder
-                localPaymentBasePoint
-                remotePaymentBasePoint
+                localPaymentBasepoint
+                remotePaymentBasepoint
 
     /// Sort by BOLT 3: Compliant way (i.e. BIP69 + CLTV order)
     let sortTxOut (txOutsWithMeta: (TxOut * _) list) =
@@ -354,8 +354,8 @@ module Transactions =
 
     let makeCommitTx (inputInfo: ScriptCoin)
                      (commitmentNumber: CommitmentNumber)
-                     (localPaymentBasePoint: PubKey)
-                     (remotePaymentBasePoint: PubKey)
+                     (localPaymentBasepoint: PubKey)
+                     (remotePaymentBasepoint: PubKey)
                      (localIsFunder: bool)
                      (localDustLimit: Money)
                      (localRevocationPubKey: PubKey)
@@ -397,7 +397,7 @@ module Transactions =
                     TxOut(htlc.Add.Amount.ToMoney(), redeem.WitHash.ScriptPubKey), Some htlc.Add)
         
         let obscuredCommitmentNumber =
-            commitmentNumber.Obscure localIsFunder localPaymentBasePoint remotePaymentBasePoint
+            commitmentNumber.Obscure localIsFunder localPaymentBasepoint remotePaymentBasepoint
         let sequence = obscuredCommitmentNumber.Sequence
         let lockTime = obscuredCommitmentNumber.LockTime
 
