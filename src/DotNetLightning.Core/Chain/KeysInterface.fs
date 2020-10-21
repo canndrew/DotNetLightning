@@ -54,9 +54,9 @@ type IKeysRepository =
     abstract member GetNodeSecret: unit -> Key
     abstract member GetDestinationScript: unit -> Script
     abstract member GetShutdownPubKey: unit -> PubKey
-    /// Get a new set of ChannelKeys for per-channel secrets. These MUST be unique even if you
+    /// Get a new set of ChannelPrivKeys for per-channel secrets. These MUST be unique even if you
     /// restarted with some stale data.
-    abstract member GetChannelKeys: inbound:bool -> ChannelKeys
+    abstract member GetChannelPrivKeys: inbound:bool -> ChannelPrivKeys
 
     /// Must add funding pub key signature for to the PSBT *And* return the signature
     abstract member SignWithFundingPrivKey: psbt: PSBT -> TransactionSignature * PSBT
@@ -115,7 +115,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     member this.HtlcBasepointSecret = htlcBasepointSecret
     member this.HtlcBasepoint = htlcBasepoint
 
-    member this.GetChannelKeys(): ChannelKeys =
+    member this.GetChannelPrivKeys(): ChannelPrivKeys =
         {
             FundingPrivKey = this.FundingPrivKey
             RevocationBasepointSecret = this.RevocationBasepointSecret
@@ -126,8 +126,8 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
         }
     interface IKeysRepository with
         // TODO: Update
-        member this.GetChannelKeys(_inbound): ChannelKeys =
-            this.GetChannelKeys()
+        member this.GetChannelPrivKeys(_inbound): ChannelPrivKeys =
+            this.GetChannelPrivKeys()
         member this.GetDestinationScript() =
             this.DestinationScript
         member this.GetShutdownPubKey(): PubKey =

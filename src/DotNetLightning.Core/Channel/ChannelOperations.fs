@@ -151,10 +151,10 @@ type InputInitFunder = {
     LocalParams: LocalParams
     RemoteInit: InitMsg
     ChannelFlags: uint8
-    ChannelKeys: ChannelKeys
+    ChannelPrivKeys: ChannelPrivKeys
 }
     with
-        static member FromOpenChannel (localParams) (remoteInit) (channelKeys) (o: OpenChannelMsg) =
+        static member FromOpenChannel (localParams) (remoteInit) (channelPrivKeys) (o: OpenChannelMsg) =
             {
                 InputInitFunder.TemporaryChannelId = o.TemporaryChannelId
                 FundingSatoshis = o.FundingSatoshis
@@ -164,7 +164,7 @@ type InputInitFunder = {
                 LocalParams = localParams
                 RemoteInit = remoteInit
                 ChannelFlags = o.ChannelFlags
-                ChannelKeys = channelKeys
+                ChannelPrivKeys = channelPrivKeys
             }
 
         member this.DeriveCommitmentSpec() =
@@ -178,7 +178,7 @@ and InputInitFundee = {
     LocalParams: LocalParams
     RemoteInit: InitMsg
     ToLocal: LNMoney
-    ChannelKeys: ChannelKeys
+    ChannelPrivKeys: ChannelPrivKeys
 }
 
 
