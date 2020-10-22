@@ -104,7 +104,7 @@ let tests =
                                           (remotePubKeys.PaymentBasepoint)
                                           (true)
                                           localDustLimit
-                                          (localPubKeys.RevocationBasePubKey)
+                                          (RevocationPubKey <| localPubKeys.RevocationBasepoint.RawPubKey())            // FIXME: basepoint being used as pubkey here?
                                           toLocalDelay
                                           (DelayedPaymentPubKey <| localPubKeys.DelayedPaymentBasepoint.RawPubKey())    // FIXME: basepoint being used as pubkey here?
                                           (PaymentPubKey <| remotePubKeys.PaymentBasepoint.RawPubKey())                 // FIXME: basepoint being used as pubkey here?
@@ -126,7 +126,7 @@ let tests =
                                           localPubKeys.PaymentBasepoint
                                           false
                                           remoteDustLimit
-                                          remotePubKeys.RevocationBasePubKey
+                                          (RevocationPubKey <| remotePubKeys.RevocationBasepoint.RawPubKey())           // FIXME: basepoint being used as pubkey here?
                                           remoteDelay
                                           (DelayedPaymentPubKey <| remotePubKeys.DelayedPaymentBasepoint.RawPubKey())   // FIXME: basepoint being used as pubkey here?
                                           (PaymentPubKey <| localPubKeys.PaymentBasepoint.RawPubKey())                  // FIXME: basepoint being used as pubkey here?

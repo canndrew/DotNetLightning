@@ -82,8 +82,9 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     let fundingKey = channelMasterKey.Derive(4, true).PrivateKey
     let fundingPubKey = fundingKey.PubKey
 
-    let revocationBaseKey = channelMasterKey.Derive(5, true).PrivateKey
-    let revocationBasePubKey = revocationBaseKey.PubKey
+    let revocationBasepointSecret =
+        channelMasterKey.Derive(5, true).PrivateKey |> RevocationBasepointSecret
+    let revocationBasepoint = revocationBasepointSecret.RevocationBasepoint()
 
     let paymentBasepointSecret =
         channelMasterKey.Derive(6, true).PrivateKey |> PaymentBasepointSecret
@@ -100,7 +101,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     let basepointToSecretMap = ConcurrentDictionary<PubKey, Key>()
     do
         basepointToSecretMap.TryAdd(fundingPubKey, fundingKey) |> ignore
-        basepointToSecretMap.TryAdd(revocationBasePubKey, revocationBaseKey) |> ignore
+        basepointToSecretMap.TryAdd(revocationBasepoint.RawPubKey(), revocationBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(paymentBasepoint.RawPubKey(), paymentBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(delayedPaymentBasepoint.RawPubKey(), delayedPaymentBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(htlcBasepoint.RawPubKey(), htlcBasepointSecret.RawKey()) |> ignore
@@ -112,8 +113,8 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     member this.CommitmentSeed = commitmentSeed
     member this.FundingKey = fundingKey
     member this.FundingPubKey = fundingPubKey
-    member this.RevocationBaseKey = revocationBaseKey
-    member this.RevocationBasePubKey = revocationBasePubKey
+    member this.RevocationBasepointSecret = revocationBasepointSecret
+    member this.RevocationBasepoint = revocationBasepoint
     member this.PaymentBasepointSecret = paymentBasepointSecret
     member this.PaymentBasepoint = paymentBasepoint
     member this.DelayedPaymentBasepointSecret = delayedPaymentBasepointSecret
@@ -126,7 +127,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     member this.GetChannelKeys(): ChannelKeys =
         {
             FundingKey = this.FundingKey
-            RevocationBaseKey = this.RevocationBaseKey
+            RevocationBasepointSecret = this.RevocationBasepointSecret
             PaymentBasepointSecret = this.PaymentBasepointSecret
             DelayedPaymentBasepointSecret = this.DelayedPaymentBasepointSecret
             HtlcBasepointSecret = this.HtlcBasepointSecret
