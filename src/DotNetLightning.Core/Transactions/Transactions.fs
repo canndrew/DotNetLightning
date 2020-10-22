@@ -12,6 +12,7 @@ open DotNetLightning.Utils.Primitives
 open DotNetLightning.Utils
 open DotNetLightning.Core.Utils.Extensions
 open DotNetLightning.Utils.Aether
+open DotNetLightning.Crypto
 open DotNetLightning.Serialization.Msgs
 
 /// We define all possible txs here.
@@ -360,7 +361,7 @@ module Transactions =
                      (localDustLimit: Money)
                      (localRevocationPubKey: PubKey)
                      (toLocalDelay: BlockHeightOffset16)
-                     (localDelayedPaymentPubKey)
+                     (localDelayedPaymentPubKey: DelayedPaymentPubKey)
                      (remotePaymentPubkey: PubKey)
                      (localHTLCPubKey: PubKey)
                      (remoteHTLCPubkey: PubKey)
@@ -501,7 +502,7 @@ module Transactions =
                           (localDustLimit: Money)
                           (localRevocationPubKey: PubKey)
                           (toLocalDelay: BlockHeightOffset16)
-                          (localDelayedPaymentPubKey: PubKey)
+                          (localDelayedPaymentPubKey: DelayedPaymentPubKey)
                           (localHTLCPubKey: PubKey)
                           (remoteHTLCPubKey: PubKey)
                           (feeratePerKw: FeeRatePerKw)
@@ -543,7 +544,7 @@ module Transactions =
                           (localDustLimit: Money)
                           (localRevocationPubKey: PubKey)
                           (toLocalDelay: BlockHeightOffset16)
-                          (localDelayedPaymentPubKey: PubKey)
+                          (localDelayedPaymentPubKey: DelayedPaymentPubKey)
                           (localHTLCPubKey: PubKey)
                           (remoteHTLCPubKey: PubKey)
                           (feeratePerKw: FeeRatePerKw)
@@ -586,7 +587,7 @@ module Transactions =
                     (localDustLimit: Money)
                     (localRevocationPubKey: PubKey)
                     (toLocalDelay)
-                    (toLocalDelayedPaymentPubKey)
+                    (toLocalDelayedPaymentPubKey: DelayedPaymentPubKey)
                     (localHTLCPubKey)
                     (remoteHTLCPubKey)
                     (spec: CommitmentSpec)
@@ -722,7 +723,7 @@ module Transactions =
                           (remoteRevocationKey: PubKey)
                           (localFinalDestination: IDestination)
                           (toRemoteDelay: BlockHeightOffset16)
-                          (remoteDelayedPaymentPubKey: PubKey)
+                          (remoteDelayedPaymentPubKey: DelayedPaymentPubKey)
                           (feeRatePerKw: FeeRatePerKw)
                           (network: Network)
                               : Result<MainPenaltyTx, _>  =
