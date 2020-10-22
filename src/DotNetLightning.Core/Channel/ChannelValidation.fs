@@ -28,10 +28,10 @@ module internal ChannelHelpers =
     let private makeFlags (isNode1: bool, enable: bool) =
         (if isNode1 then 1uy else 0uy) ||| ((if enable then 1uy else 0uy) <<< 1)
 
-    let internal makeChannelUpdate (chainHash, nodeSecret: Key, remoteNodeId: NodeId, shortChannelId, cltvExpiryDelta,
+    let internal makeChannelUpdate (chainHash, nodeSecret: NodeSecret, remoteNodeId: NodeId, shortChannelId, cltvExpiryDelta,
                                     htlcMinimum, feeBase, feeProportionalMillionths, enabled: bool, timestamp) =
         let timestamp = defaultArg timestamp ((System.DateTime.UtcNow.ToUnixTimestamp()) |> uint32)
-        let isNodeOne = NodeId (nodeSecret.PubKey) < remoteNodeId
+        let isNodeOne = nodeSecret.NodeId() < remoteNodeId
         let unsignedChannelUpdate = {
             ChainHash = chainHash
             ShortChannelId = shortChannelId
@@ -44,7 +44,7 @@ module internal ChannelHelpers =
             FeeProportionalMillionths = feeProportionalMillionths
             HTLCMaximumMSat = None
         }
-        let signature = unsignedChannelUpdate.ToBytes() |> Crypto.Hashes.SHA256 |> uint256 |> nodeSecret.Sign |> LNECDSASignature
+        let signature = unsignedChannelUpdate.ToBytes() |> Crypto.Hashes.SHA256 |> uint256 |> nodeSecret.RawKey().Sign |> LNECDSASignature
         {
             ChannelUpdateMsg.Contents = unsignedChannelUpdate
             Signature = signature

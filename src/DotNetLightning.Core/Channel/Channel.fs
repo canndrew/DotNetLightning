@@ -16,23 +16,25 @@ open ResultUtils.Portability
 type ProvideFundingTx = IDestination * Money * FeeRatePerKw -> Result<FinalizedTx * TxOutIndex, string> 
 type Channel = {
     Config: ChannelConfig
-    KeysRepository: IKeysRepository
+    ChannelPrivKeys: ChannelPrivKeys
     FeeEstimator: IFeeEstimator
     FundingTxProvider:ProvideFundingTx
     RemoteNodeId: NodeId
-    LocalNodeSecret: Key
+    NodeSecret: NodeSecret
     State: ChannelState
     Network: Network
  }
         with
-        static member Create(config, keysRepo, feeEstimator, localNodeSecret, fundingTxProvider, n, remoteNodeId) =
+        static member Create(config: ChannelConfig, nodeMasterPrivKey: NodeMasterPrivKey, channelIndex: int, feeEstimator: IFeeEstimator, fundingTxProvider: ProvideFundingTx, n: Network, remoteNodeId: NodeId) =
+            let channelPrivKeys = nodeMasterPrivKey.ChannelPrivKeys channelIndex
+            let nodeSecret = nodeMasterPrivKey.NodeSecret()
             {
                 Config = config
-                KeysRepository = keysRepo
+                ChannelPrivKeys = channelPrivKeys
                 FeeEstimator = feeEstimator
                 FundingTxProvider = fundingTxProvider
                 RemoteNodeId = remoteNodeId
-                LocalNodeSecret = localNodeSecret
+                NodeSecret = nodeSecret
                 State = WaitForInitInternal
                 Network = n
             }
@@ -186,8 +188,7 @@ module Channel =
                                                (commitmentSeed.DerivePerCommitmentPoint CommitmentNumber.FirstCommitment)
                                                msg.FirstPerCommitmentPoint
                                                cs.Network
-                let channelPrivKeys = cs.KeysRepository.GetChannelPrivKeys true
-                let localSigOfRemoteCommit, _ = channelPrivKeys.SignWithFundingPrivKey remoteCommitTx.Value
+                let localSigOfRemoteCommit, _ = cs.ChannelPrivKeys.SignWithFundingPrivKey remoteCommitTx.Value
                 let nextMsg: FundingCreatedMsg = {
                     TemporaryChannelId = msg.TemporaryChannelId
                     FundingTxId = fundingTxId
@@ -215,8 +216,7 @@ module Channel =
                 let remoteChannelKeys = state.RemoteParams.ChannelPubKeys
                 let! finalizedLocalCommitTx =
                     let theirFundingPk = remoteChannelKeys.FundingPubKey.RawPubKey()
-                    let channelPrivKeys = cs.KeysRepository.GetChannelPrivKeys true
-                    let _, signedLocalCommitTx = channelPrivKeys.SignWithFundingPrivKey state.LocalCommitTx.Value
+                    let _, signedLocalCommitTx = cs.ChannelPrivKeys.SignWithFundingPrivKey state.LocalCommitTx.Value
                     let remoteSigPairOfLocalTx = (theirFundingPk,  TransactionSignature(msg.Signature.Value, SigHash.All))
                     let sigPairs = seq [ remoteSigPairOfLocalTx; ]
                     Transactions.checkTxFinalized signedLocalCommitTx state.LocalCommitTx.WhichInput sigPairs |> expectTransactionError
@@ -259,9 +259,9 @@ module Channel =
             [ NewInboundChannelStarted({ InitFundee = inputInitFundee }) ] |> Ok
 
         | WaitForFundingConfirmed state, CreateChannelReestablish ->
-            makeChannelReestablish (cs.KeysRepository.GetChannelPrivKeys true) state
+            makeChannelReestablish cs.ChannelPrivKeys state
         | ChannelState.Normal state, CreateChannelReestablish ->
-            makeChannelReestablish (cs.KeysRepository.GetChannelPrivKeys true) state
+            makeChannelReestablish cs.ChannelPrivKeys state
         | WaitForOpenChannel state, ApplyOpenChannel msg ->
             result {
                 do! Validation.checkOpenChannelMsgAcceptable (cs.FeeEstimator) (cs.Config) msg
@@ -308,16 +308,15 @@ module Channel =
                         state.RemoteFirstPerCommitmentPoint
                         cs.Network
                 assert (localCommitTx.Value.IsReadyToSign())
-                let channelPrivKeys = cs.KeysRepository.GetChannelPrivKeys true
                 let _s, signedLocalCommitTx =
-                    channelPrivKeys.SignWithFundingPrivKey localCommitTx.Value
+                    cs.ChannelPrivKeys.SignWithFundingPrivKey localCommitTx.Value
                 let remoteTxSig = TransactionSignature(msg.Signature.Value, SigHash.All)
                 let theirSigPair = (remoteChannelKeys.FundingPubKey.RawPubKey(), remoteTxSig)
                 let sigPairs = seq [ theirSigPair ]
                 let! finalizedCommitTx =
                     Transactions.checkTxFinalized (signedLocalCommitTx) (localCommitTx.WhichInput) sigPairs
                     |> expectTransactionError
-                let localSigOfRemoteCommit, _ = channelPrivKeys.SignWithFundingPrivKey remoteCommitTx.Value
+                let localSigOfRemoteCommit, _ = cs.ChannelPrivKeys.SignWithFundingPrivKey remoteCommitTx.Value
                 let channelId = OutPoint(msg.FundingTxId.Value, uint32 msg.FundingOutputIndex.Value).ToChannelId()
                 let msgToSend: FundingSignedMsg = { ChannelId = channelId; Signature = !>localSigOfRemoteCommit.Signature }
                 let commitments = { Commitments.LocalParams = state.LocalParams
@@ -360,9 +359,8 @@ module Channel =
             if state.Commitments.RemoteParams.MinimumDepth > depth then
                 [] |> Ok
             else
-                let chanPrivateKeys = cs.KeysRepository.GetChannelPrivKeys state.Commitments.LocalParams.IsFunder
                 let nextPerCommitmentPoint =
-                    chanPrivateKeys.CommitmentSeed.DerivePerCommitmentPoint CommitmentNumber.FirstCommitment.NextCommitment
+                    cs.ChannelPrivKeys.CommitmentSeed.DerivePerCommitmentPoint CommitmentNumber.FirstCommitment.NextCommitment
                 let msgToSend: FundingLockedMsg = { ChannelId = state.Commitments.ChannelId; NextPerCommitmentPoint = nextPerCommitmentPoint }
 
                 // This is temporary channel id that we will use in our channel_update message, the goal is to be able to use our channel
@@ -395,7 +393,7 @@ module Channel =
                 let initialChannelUpdate =
                     let feeBase = ChannelHelpers.getOurFeeBaseMSat cs.FeeEstimator state.InitialFeeRatePerKw state.Commitments.LocalParams.IsFunder
                     ChannelHelpers.makeChannelUpdate (cs.Network.Consensus.HashGenesisBlock,
-                                               cs.LocalNodeSecret,
+                                               cs.NodeSecret,
                                                cs.RemoteNodeId,
                                                state.ShortChannelId,
                                                state.Commitments.LocalParams.ToSelfDelay,
@@ -492,7 +490,7 @@ module Channel =
             state.Commitments |> Commitments.receiveFulfill msg
 
         | ChannelState.Normal state, FailHTLC op ->
-            state.Commitments |> Commitments.sendFail cs.LocalNodeSecret op
+            state.Commitments |> Commitments.sendFail cs.NodeSecret op
 
         | ChannelState.Normal state, FailMalformedHTLC op ->
             state.Commitments |> Commitments.sendFailMalformed op
@@ -517,14 +515,14 @@ module Channel =
                     // Ignore SignCommitment Command (nothing to sign)
                     return []
                 | RemoteNextCommitInfo.Revoked _ ->
-                    return! cm |> Commitments.sendCommit (cs.KeysRepository.GetChannelPrivKeys true) (cs.Network)
+                    return! cm |> Commitments.sendCommit cs.ChannelPrivKeys (cs.Network)
                 | RemoteNextCommitInfo.Waiting _ ->
                     // Already in the process of signing
                     return []
             }
 
         | ChannelState.Normal state, ApplyCommitmentSigned msg ->
-            state.Commitments |> Commitments.receiveCommit (cs.KeysRepository.GetChannelPrivKeys true) msg cs.Network
+            state.Commitments |> Commitments.receiveCommit cs.ChannelPrivKeys msg cs.Network
 
         | ChannelState.Normal state, ApplyRevokeAndACK msg ->
             let cm = state.Commitments
@@ -612,7 +610,7 @@ module Channel =
                         // we have to send first closing_signed msg iif we are the funder
                         if (cm.LocalParams.IsFunder) then
                             let! (closingTx, closingSignedMsg) =
-                                Closing.makeFirstClosingTx (cs.KeysRepository.GetChannelPrivKeys true,
+                                Closing.makeFirstClosingTx (cs.ChannelPrivKeys,
                                                             cm,
                                                             localShutdown.ScriptPubKey,
                                                             msg.ScriptPubKey,
@@ -650,7 +648,7 @@ module Channel =
         | Shutdown state, ApplyUpdateFulfillHTLC msg ->
             state.Commitments |> Commitments.receiveFulfill msg
         | Shutdown state, FailHTLC op ->
-            state.Commitments |> Commitments.sendFail cs.LocalNodeSecret op
+            state.Commitments |> Commitments.sendFail cs.NodeSecret op
         | Shutdown state, FailMalformedHTLC op ->
             state.Commitments |> Commitments.sendFailMalformed op
         | Shutdown state, ApplyUpdateFailMalformedHTLC msg ->
@@ -667,12 +665,12 @@ module Channel =
                 // nothing to sign
                 [] |> Ok
             | RemoteNextCommitInfo.Revoked _ ->
-                cm |> Commitments.sendCommit (cs.KeysRepository.GetChannelPrivKeys true) (cs.Network)
+                cm |> Commitments.sendCommit cs.ChannelPrivKeys (cs.Network)
             | RemoteNextCommitInfo.Waiting _waitForRevocation ->
                 // Already in the process of signing.
                 [] |> Ok
         | Shutdown state, ApplyCommitmentSigned msg ->
-            state.Commitments |> Commitments.receiveCommit (cs.KeysRepository.GetChannelPrivKeys true) msg cs.Network
+            state.Commitments |> Commitments.receiveCommit cs.ChannelPrivKeys msg cs.Network
         | Shutdown _state, ApplyRevokeAndACK _msg ->
             failwith "not implemented"
 
@@ -684,7 +682,7 @@ module Channel =
                     cm.FundingScriptCoin.TxOut.Value - (cm.LocalCommit.PublishableTxs.CommitTx.Value.TotalOut)
                 do! checkRemoteProposedHigherFeeThanBefore lastCommitFeeSatoshi msg.FeeSatoshis
                 let! closingTx, closingSignedMsg =
-                    Closing.makeClosingTx (cs.KeysRepository.GetChannelPrivKeys true, cm, state.LocalShutdown.ScriptPubKey, state.RemoteShutdown.ScriptPubKey, msg.FeeSatoshis, cm.LocalParams.ChannelPubKeys.FundingPubKey, cs.Network)
+                    Closing.makeClosingTx (cs.ChannelPrivKeys, cm, state.LocalShutdown.ScriptPubKey, state.RemoteShutdown.ScriptPubKey, msg.FeeSatoshis, cm.LocalParams.ChannelPubKeys.FundingPubKey, cs.Network)
                     |> expectTransactionError
                 let! finalizedTx = Transactions.checkTxFinalized closingTx.Value (closingTx.WhichInput) (seq [ remoteChannelKeys.FundingPubKey.RawPubKey(), TransactionSignature(msg.Signature.Value, SigHash.All) ]) |> expectTransactionError
                 let maybeLocalFee =
@@ -724,7 +722,7 @@ module Channel =
                         return! Closing.handleMutualClose (finalizedTx, negoData)
                     else
                         let! closingTx, closingSignedMsg =
-                            Closing.makeClosingTx (cs.KeysRepository, cm, state.LocalShutdown.ScriptPubKey, state.RemoteShutdown.ScriptPubKey, nextClosingFee, cm.LocalParams.ChannelPubKeys.FundingPubKey, cs.Network)
+                            Closing.makeClosingTx (cs.ChannelPrivKeys, cm, state.LocalShutdown.ScriptPubKey, state.RemoteShutdown.ScriptPubKey, nextClosingFee, cm.LocalParams.ChannelPubKeys.FundingPubKey, cs.Network)
                             |> expectTransactionError
                         let closingTxProposed1 =
                             let newProposed = [ { ClosingTxProposed.UnsignedTx = closingTx
@@ -740,7 +738,7 @@ module Channel =
                 let! (msgToSend, newCommitments) = cm |> Commitments.sendFulfill op
                 let localCommitPublished =
                     state.LocalCommitPublished
-                    |> Option.map (fun localCommitPublished -> Closing.claimCurrentLocalCommitTxOutputs (cs.KeysRepository.GetChannelPrivKeys true, newCommitments, localCommitPublished.CommitTx))
+                    |> Option.map (fun localCommitPublished -> Closing.claimCurrentLocalCommitTxOutputs (cs.ChannelPrivKeys, newCommitments, localCommitPublished.CommitTx))
                 return failwith "Not Implemented yet"
             }
         | state, cmd ->
@@ -774,7 +772,7 @@ module Channel =
         | TheySentFundingLocked msg, WaitForFundingLocked s ->
             let feeBase = ChannelHelpers.getOurFeeBaseMSat c.FeeEstimator s.InitialFeeRatePerKw s.Commitments.LocalParams.IsFunder
             let channelUpdate = ChannelHelpers.makeChannelUpdate (c.Network.Consensus.HashGenesisBlock,
-                                                           c.LocalNodeSecret,
+                                                           c.NodeSecret,
                                                            c.RemoteNodeId,
                                                            s.ShortChannelId,
                                                            s.Commitments.LocalParams.ToSelfDelay,
