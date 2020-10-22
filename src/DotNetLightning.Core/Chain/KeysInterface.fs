@@ -79,8 +79,9 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     let shutdownKey = channelMasterKey.Derive(2, true).PrivateKey
     let commitmentSeed = channelMasterKey.Derive(3, true).PrivateKey |> CommitmentSeed
 
-    let fundingKey = channelMasterKey.Derive(4, true).PrivateKey
-    let fundingPubKey = fundingKey.PubKey
+    let fundingPrivKey =
+        channelMasterKey.Derive(4, true).PrivateKey |> FundingPrivKey
+    let fundingPubKey = fundingPrivKey.FundingPubKey()
 
     let revocationBasepointSecret =
         channelMasterKey.Derive(5, true).PrivateKey |> RevocationBasepointSecret
@@ -100,7 +101,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
 
     let basepointToSecretMap = ConcurrentDictionary<PubKey, Key>()
     do
-        basepointToSecretMap.TryAdd(fundingPubKey, fundingKey) |> ignore
+        basepointToSecretMap.TryAdd(fundingPubKey.RawPubKey(), fundingPrivKey.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(revocationBasepoint.RawPubKey(), revocationBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(paymentBasepoint.RawPubKey(), paymentBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(delayedPaymentBasepoint.RawPubKey(), delayedPaymentBasepointSecret.RawKey()) |> ignore
@@ -111,7 +112,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     member this.ShutDownKey = shutdownKey
     member this.ShutDownPubKey = shutdownKey.PubKey
     member this.CommitmentSeed = commitmentSeed
-    member this.FundingKey = fundingKey
+    member this.FundingPrivKey = fundingPrivKey
     member this.FundingPubKey = fundingPubKey
     member this.RevocationBasepointSecret = revocationBasepointSecret
     member this.RevocationBasepoint = revocationBasepoint
@@ -126,7 +127,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
 
     member this.GetChannelKeys(): ChannelKeys =
         {
-            FundingKey = this.FundingKey
+            FundingPrivKey = this.FundingPrivKey
             RevocationBasepointSecret = this.RevocationBasepointSecret
             PaymentBasepointSecret = this.PaymentBasepointSecret
             DelayedPaymentBasepointSecret = this.DelayedPaymentBasepointSecret
