@@ -4,6 +4,7 @@ open DotNetLightning.Utils.Aether
 open DotNetLightning.DomainUtils.Types
 open DotNetLightning.Serialize.Msgs
 open DotNetLightning.Transactions
+open DotNetLightning.Crypto
 open NBitcoin
 
 (*
@@ -76,7 +77,7 @@ module Data =
                                             FundingSatoshis: Money
                                             PushMsat: LNMoney
                                             InitialFeeRatePerKw: FeeRatePerKw
-                                            RemoteFirstPerCommitmentPoint: CommitmentPubKey
+                                            RemoteFirstPerCommitmentPoint: PerCommitmentPoint
                                             LastSent: OpenChannelMsg
                                         }
         with interface IChannelStateData
@@ -88,7 +89,7 @@ module Data =
                                             FundingSatoshis: Money
                                             PushMSat: LNMoney
                                             InitialFeeRatePerKw: FeeRatePerKw
-                                            RemoteFirstPerCommitmentPoint: CommitmentPubKey
+                                            RemoteFirstPerCommitmentPoint: PerCommitmentPoint
                                             ChannelFlags: uint8
                                             LastSent: AcceptChannelMsg
                                       }

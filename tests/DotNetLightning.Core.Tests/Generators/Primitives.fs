@@ -3,6 +3,7 @@ open FsCheck
 open NBitcoin
 open DotNetLightning.Utils.Primitives
 open DotNetLightning.Utils
+open DotNetLightning.Crypto
 open System
 
 let byteGen = byte <!> Gen.choose(0, 127)
@@ -24,14 +25,14 @@ let pubKeyGen = gen {
     return key.PubKey
 }
 
-let revocationKeyGen = gen {
+let perCommitmentSecretGen = gen {
     let! key = keyGen
-    return RevocationKey key
+    return PerCommitmentSecret key
 }
 
-let commitmentPubKeyGen = gen {
+let perCommitmentPointGen = gen {
     let! pubKey = pubKeyGen
-    return CommitmentPubKey pubKey
+    return PerCommitmentPoint pubKey
 }
 
 let commitmentNumberGen = gen {
