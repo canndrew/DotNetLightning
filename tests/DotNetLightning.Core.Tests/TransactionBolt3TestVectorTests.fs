@@ -212,13 +212,15 @@ let htlcScripts =
     htlcs
     |> List.map(fun htlc -> match htlc.Direction with
                             | Out -> Scripts.htlcOffered
-                                        (local.PaymentPrivKey.PaymentPubKey().RawPubKey())
-                                        (remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                        // FIXME: payment keys being used as htlc keys??
+                                        (HtlcPubKey <| local.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                        (HtlcPubKey <| remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
                                         (local.RevocationPubKey)
                                         (htlc.Add.PaymentHash)
                             | In -> Scripts.htlcReceived
-                                        (local.PaymentPrivKey.PaymentPubKey().RawPubKey())
-                                        (remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                        // FIXME: payment keys being used as htlc keys??
+                                        (HtlcPubKey <| local.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                        (HtlcPubKey <| remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
                                         (local.RevocationPubKey)
                                         (htlc.Add.PaymentHash)
                                         (htlc.Add.CLTVExpiry.Value))
@@ -240,8 +242,9 @@ let run (spec: CommitmentSpec): (Transaction * _) =
                          (local.ToSelfDelay)
                          (local.DelayedPaymentPrivKey.DelayedPaymentPubKey())
                          (remote.PaymentPrivKey.PaymentPubKey())
-                         (local.PaymentPrivKey.PaymentPubKey().RawPubKey())
-                         (remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                         // FIXME: payment keys being used as htlc keys??
+                         (HtlcPubKey <| local.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                         (HtlcPubKey <| remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
                          (spec)
                          (n)
         // test vectors requires us to use RFC6974
@@ -291,8 +294,9 @@ let run (spec: CommitmentSpec): (Transaction * _) =
                                  local.RevocationPubKey
                                  local.ToSelfDelay
                                  (local.DelayedPaymentPrivKey.DelayedPaymentPubKey())
-                                 (local.PaymentPrivKey.PaymentPubKey().RawPubKey())
-                                 (remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                 // FIXME: payment keys being used as htlc keys??
+                                 (HtlcPubKey <| local.PaymentPrivKey.PaymentPubKey().RawPubKey())
+                                 (HtlcPubKey <| remote.PaymentPrivKey.PaymentPubKey().RawPubKey())
                                  spec
                                  n
         |> Result.defaultWith(fun _ -> failwith "fail(BOLT3 transactions): couldn't make HTLC transactions")

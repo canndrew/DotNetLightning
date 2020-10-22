@@ -518,7 +518,7 @@ type OpenChannelMsg = {
     mutable RevocationBasepoint: PubKey
     mutable PaymentBasepoint: PaymentBasepoint
     mutable DelayedPaymentBasepoint: DelayedPaymentBasepoint
-    mutable HTLCBasepoint: PubKey
+    mutable HTLCBasepoint: HtlcBasepoint
     mutable FirstPerCommitmentPoint: PerCommitmentPoint
     mutable ChannelFlags: uint8
     mutable ShutdownScriptPubKey: OptionalField<Script>
@@ -542,7 +542,7 @@ with
             this.RevocationBasepoint <- ls.ReadPubKey()
             this.PaymentBasepoint <- ls.ReadPaymentBasepoint()
             this.DelayedPaymentBasepoint <- ls.ReadDelayedPaymentBasepoint()
-            this.HTLCBasepoint <- ls.ReadPubKey()
+            this.HTLCBasepoint <- ls.ReadHtlcBasepoint()
             this.FirstPerCommitmentPoint <- ls.ReadPerCommitmentPoint()
             this.ChannelFlags <- ls.ReadUInt8()
             this.ShutdownScriptPubKey <-
@@ -583,7 +583,7 @@ type AcceptChannelMsg = {
     mutable RevocationBasepoint: PubKey
     mutable PaymentBasepoint: PaymentBasepoint
     mutable DelayedPaymentBasepoint: DelayedPaymentBasepoint
-    mutable HTLCBasepoint: PubKey
+    mutable HTLCBasepoint: HtlcBasepoint
     mutable FirstPerCommitmentPoint: PerCommitmentPoint
     mutable ShutdownScriptPubKey: OptionalField<Script>
 }
@@ -603,7 +603,7 @@ with
             this.RevocationBasepoint <- ls.ReadPubKey()
             this.PaymentBasepoint <- ls.ReadPaymentBasepoint()
             this.DelayedPaymentBasepoint <- ls.ReadDelayedPaymentBasepoint()
-            this.HTLCBasepoint <- ls.ReadPubKey()
+            this.HTLCBasepoint <- ls.ReadHtlcBasepoint()
             this.FirstPerCommitmentPoint <- ls.ReadPerCommitmentPoint()
             this.ShutdownScriptPubKey <-
                 if (ls.Position = ls.Length) then None else
