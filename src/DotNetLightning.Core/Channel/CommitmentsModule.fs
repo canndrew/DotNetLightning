@@ -33,17 +33,17 @@ module internal Commitments =
             let localChannelKeys = localParams.ChannelPubKeys
             let remoteChannelKeys = remoteParams.ChannelPubKeys
             let pkGen = Generators.derivePubKey ctx (remotePerCommitmentPoint.RawPubKey())
-            let localPaymentPK = pkGen localChannelKeys.PaymentBasePubKey
+            let localPaymentPK = PaymentPubKey <| pkGen (localChannelKeys.PaymentBasepoint.RawPubKey())
             let localHTLCPK = pkGen localChannelKeys.HTLCBasePubKey
-            let remotePaymentPK = pkGen remoteChannelKeys.PaymentBasePubKey
+            let remotePaymentPK = PaymentPubKey <| pkGen (remoteChannelKeys.PaymentBasepoint.RawPubKey())
             let remoteDelayedPaymentPK = DelayedPaymentPubKey <| pkGen (remoteChannelKeys.DelayedPaymentBasepoint.RawPubKey())
             let remoteHTLCPK = pkGen remoteChannelKeys.HTLCBasePubKey
             let remoteRevocationPK = pkGen localChannelKeys.RevocationBasePubKey
             let commitTx =
                 Transactions.makeCommitTx commitmentInput 
                                           commitTxNumber
-                                          remoteChannelKeys.PaymentBasePubKey
-                                          localChannelKeys.PaymentBasePubKey
+                                          remoteChannelKeys.PaymentBasepoint
+                                          localChannelKeys.PaymentBasepoint
                                           (not localParams.IsFunder)
                                           (remoteParams.DustLimitSatoshis)
                                           (remoteRevocationPK)
@@ -80,17 +80,17 @@ module internal Commitments =
             let localChannelKeys = localParams.ChannelPubKeys
             let remoteChannelKeys = remoteParams.ChannelPubKeys
             let pkGen = Generators.derivePubKey ctx (localPerCommitmentPoint.RawPubKey())
-            let localPaymentPK = pkGen localChannelKeys.PaymentBasePubKey
+            let localPaymentPK = PaymentPubKey <| pkGen (localChannelKeys.PaymentBasepoint.RawPubKey())
             let localDelayedPaymentPK = DelayedPaymentPubKey <| pkGen (localChannelKeys.DelayedPaymentBasepoint.RawPubKey())
             let localHTLCPK = pkGen localChannelKeys.HTLCBasePubKey
-            let remotePaymentPK = pkGen remoteChannelKeys.PaymentBasePubKey
+            let remotePaymentPK = PaymentPubKey <| pkGen (remoteChannelKeys.PaymentBasepoint.RawPubKey())
             let remoteHTLCPK = pkGen remoteChannelKeys.HTLCBasePubKey
             let localRevocationPK = pkGen remoteChannelKeys.RevocationBasePubKey
             let commitTx =
                 Transactions.makeCommitTx commitmentInput
                                           commitTxNumber
-                                          localChannelKeys.PaymentBasePubKey
-                                          remoteChannelKeys.PaymentBasePubKey
+                                          localChannelKeys.PaymentBasepoint
+                                          remoteChannelKeys.PaymentBasepoint
                                           localParams.IsFunder
                                           localParams.DustLimitSatoshis
                                           localRevocationPK

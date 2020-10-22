@@ -85,8 +85,9 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     let revocationBaseKey = channelMasterKey.Derive(5, true).PrivateKey
     let revocationBasePubKey = revocationBaseKey.PubKey
 
-    let paymentBaseKey = channelMasterKey.Derive(6, true).PrivateKey
-    let paymentBasePubKey = paymentBaseKey.PubKey
+    let paymentBasepointSecret =
+        channelMasterKey.Derive(6, true).PrivateKey |> PaymentBasepointSecret
+    let paymentBasepoint = paymentBasepointSecret.PaymentBasepoint()
 
     let delayedPaymentBasepointSecret =
         channelMasterKey.Derive(7, true).PrivateKey |> DelayedPaymentBasepointSecret
@@ -99,7 +100,7 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     do
         basepointToSecretMap.TryAdd(fundingPubKey, fundingKey) |> ignore
         basepointToSecretMap.TryAdd(revocationBasePubKey, revocationBaseKey) |> ignore
-        basepointToSecretMap.TryAdd(paymentBasePubKey, paymentBaseKey) |> ignore
+        basepointToSecretMap.TryAdd(paymentBasepoint.RawPubKey(), paymentBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(delayedPaymentBasepoint.RawPubKey(), delayedPaymentBasepointSecret.RawKey()) |> ignore
         basepointToSecretMap.TryAdd(htlcBasePubKey, htlcBaseKey) |> ignore
 
@@ -112,8 +113,8 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
     member this.FundingPubKey = fundingPubKey
     member this.RevocationBaseKey = revocationBaseKey
     member this.RevocationBasePubKey = revocationBasePubKey
-    member this.PaymentBaseKey = paymentBaseKey
-    member this.PaymentBasePubKey = paymentBasePubKey
+    member this.PaymentBasepointSecret = paymentBasepointSecret
+    member this.PaymentBasepoint = paymentBasepoint
     member this.DelayedPaymentBasepointSecret = delayedPaymentBasepointSecret
     member this.DelayedPaymentBasepoint = delayedPaymentBasepoint
     member this.HtlcBaseKey = htlcBaseKey
@@ -121,11 +122,11 @@ type DefaultKeyRepository(nodeSecret: ExtKey, channelIndex: int) =
 
     member val BasepointToSecretMap = basepointToSecretMap
 
-    member this.GetChannelKeys() =
+    member this.GetChannelKeys(): ChannelKeys =
         {
             FundingKey = this.FundingKey
             RevocationBaseKey = this.RevocationBaseKey
-            PaymentBaseKey = this.PaymentBaseKey
+            PaymentBasepointSecret = this.PaymentBasepointSecret
             DelayedPaymentBasepointSecret = this.DelayedPaymentBasepointSecret
             HTLCBaseKey = this.HtlcBaseKey
             CommitmentSeed = this.CommitmentSeed
