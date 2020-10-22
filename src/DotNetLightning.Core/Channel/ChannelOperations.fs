@@ -6,6 +6,7 @@ open DotNetLightning.Utils.NBitcoinExtensions
 open DotNetLightning.Utils.OnionError
 open DotNetLightning.Serialize.Msgs
 open DotNetLightning.Chain
+open DotNetLightning.Crypto
 open DotNetLightning.Transactions
 
 open DotNetLightning.Serialize
