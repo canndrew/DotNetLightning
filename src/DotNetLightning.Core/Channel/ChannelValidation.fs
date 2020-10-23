@@ -15,16 +15,13 @@ open ResultUtils.Portability
 exception ChannelException of ChannelError
 module internal ChannelHelpers =
 
-    let getFundingRedeemScript (ck: ChannelPubKeys) (theirFundingPubKey: PubKey): Script =
-        let ourFundingKey = ck.FundingPubKey.RawPubKey()
-        let pks = if ourFundingKey.ToBytes() < theirFundingPubKey.ToBytes() then
-                      [| ourFundingKey; theirFundingPubKey |]
-                  else
-                      [| theirFundingPubKey; ourFundingKey |]
-        PayToMultiSigTemplate.Instance.GenerateScriptPubKey(2, pks)
-
-    let getFundingScriptCoin (ck: ChannelPubKeys) (theirFundingPubKey: PubKey) (TxId fundingTxId) (TxOutIndex fundingOutputIndex) (fundingSatoshis): ScriptCoin =
-        let redeem = getFundingRedeemScript ck theirFundingPubKey
+    let getFundingScriptCoin (ourFundingPubKey: FundingPubKey)
+                             (theirFundingPubKey: FundingPubKey)
+                             (TxId fundingTxId)
+                             (TxOutIndex fundingOutputIndex)
+                             (fundingSatoshis)
+                                 : ScriptCoin =
+        let redeem = Scripts.funding ourFundingPubKey theirFundingPubKey
         Coin(fundingTxId, uint32 fundingOutputIndex, fundingSatoshis, redeem.WitHash.ScriptPubKey)
         |> fun c -> ScriptCoin(c, redeem)
 
@@ -94,8 +91,8 @@ module internal ChannelHelpers =
             else
                 Ok()
         let makeFirstCommitTxCore() =
-            let scriptCoin = getFundingScriptCoin localChannelKeys
-                                                  (remoteChannelKeys.FundingPubKey.RawPubKey())
+            let scriptCoin = getFundingScriptCoin localChannelKeys.FundingPubKey
+                                                  remoteChannelKeys.FundingPubKey
                                                   fundingTxId
                                                   fundingOutputIndex
                                                   fundingSatoshis
