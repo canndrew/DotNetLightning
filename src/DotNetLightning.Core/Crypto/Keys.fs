@@ -9,6 +9,49 @@ open DotNetLightning.Core.Utils.Extensions
 
 // FIXME: Should the [<Struct>]-annotated types here be changed to records or single-constructor discriminated unions? 
     
+[<AutoOpen>]
+module NBitcoinArithmethicExtensions =
+    /// The functions in this module may fail but it does not return Result and just throw Exception in
+    /// case of failure. Why? because the error case is very, very unlikely to happen.
+    /// (e.g. two keys we operate were complement of each other.)
+    /// It is interesting to consider if it is possible for the attacker to intentionally make this happen,
+    /// but it is way beyond my skills, so we just ignore for now.
+
+    let Secp256k1 = CryptoUtils.impl.newSecp256k1()
+
+    type Key with
+        static member Mul(lhs: Key, rhs: Key): Key =
+            let lhsBytes = lhs.ToBytes()
+            let rhsBytes = rhs.ToBytes()
+            let tweak = ReadOnlySpan(lhsBytes)
+            match Secp256k1.PrivateKeyTweakMultiply(tweak, rhsBytes.AsSpan()) with
+            | true -> Key rhsBytes
+            | false -> failwith "failed to multiply Keys"
+
+        static member Add(lhs: Key, rhs: Key): Key =
+            let lhsBytes = lhs.ToBytes()
+            let rhsBytes = rhs.ToBytes()
+            let tweak = ReadOnlySpan(lhsBytes)
+            match Secp256k1.PrivateKeyTweakAdd(tweak, rhsBytes.AsSpan()) with
+            | true -> Key rhsBytes
+            | false -> failwithf "failed to add Keys"
+
+    type PubKey with
+        static member Mul(pubKey: PubKey, key: Key): PubKey =
+            let keyBytes = key.ToBytes()
+            let pubKeyBytes = pubKey.ToBytes()
+            let tweak = ReadOnlySpan(keyBytes)
+            match Secp256k1.PublicKeyTweakMultiply(tweak, pubKeyBytes.AsSpan()) with
+            | true -> PubKey pubKeyBytes
+            | false -> failwith "failed to multiplying PubKey by Key"
+
+        static member Add(lhs: PubKey, rhs: PubKey): PubKey =
+            let lhsBytes = lhs.ToBytes()
+            let rhsBytes = rhs.ToBytes()
+            match Secp256k1.PublicKeyCombine(lhsBytes.AsSpan(), rhsBytes.AsSpan()) with
+            | true, result -> PubKey result
+            | false, _ -> failwith "failed to add PubKeys"
+
 type [<Struct>] FundingPubKey(pubKey: PubKey) =
     member this.RawPubKey(): PubKey =
         pubKey
@@ -322,6 +365,24 @@ and [<Struct>] PerCommitmentSecret(key: Key) =
     member this.PerCommitmentPoint(): PerCommitmentPoint =
         PerCommitmentPoint <| this.RawKey().PubKey
 
+    member this.DeriveRevocationPrivKey (revocationBasepointSecret: RevocationBasepointSecret)
+                                            : RevocationPrivKey =
+        let revocationBasepointBytes =
+            let revocationBasepoint = revocationBasepointSecret.RevocationBasepoint()
+            revocationBasepoint.ToBytes()
+        let perCommitmentPointBytes =
+            let perCommitmentPoint = this.PerCommitmentPoint()
+            perCommitmentPoint.ToBytes()
+        let revocationBasepointSecretTweak =
+            Key.FromHash <| Array.append revocationBasepointBytes perCommitmentPointBytes
+        let perCommitmentSecretTweak =
+            Key.FromHash <| Array.append perCommitmentPointBytes revocationBasepointBytes
+
+        RevocationPrivKey <| Key.Add(
+            Key.Mul(revocationBasepointSecret.RawKey(), revocationBasepointSecretTweak),
+            Key.Mul(this.RawKey(), perCommitmentSecretTweak)
+        )
+
 and [<Struct>] PerCommitmentPoint(pubKey: PubKey) =
     member this.RawPubKey(): PubKey =
         pubKey
@@ -333,6 +394,66 @@ and [<Struct>] PerCommitmentPoint(pubKey: PubKey) =
 
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    member this.DerivePrivKey (basepointSecret: Key): Key =
+        let basepointBytes =
+            let basepoint = basepointSecret.PubKey
+            basepoint.ToBytes()
+        let perCommitmentPointBytes = this.ToBytes()
+        let tweak =
+            Key.FromHash <| Array.append perCommitmentPointBytes basepointBytes
+        Key.Add(basepointSecret, tweak)
+
+    member this.DerivePubKey (basepoint: PubKey): PubKey =
+        let basepointBytes = basepoint.ToBytes()
+        let perCommitmentPointBytes = this.ToBytes()
+        let tweak =
+            Key.FromHash <| Array.append perCommitmentPointBytes basepointBytes
+        PubKey.Add(basepoint, tweak.PubKey)
+
+    member this.DerivePaymentPrivKey (paymentBasepointSecret: PaymentBasepointSecret)
+                                         : PaymentPrivKey =
+        PaymentPrivKey <|
+            this.DerivePrivKey (paymentBasepointSecret.RawKey())
+
+    member this.DerivePaymentPubKey (paymentBasepoint: PaymentBasepoint)
+                                        : PaymentPubKey =
+        PaymentPubKey <|
+            this.DerivePubKey (paymentBasepoint.RawPubKey())
+
+    member this.DeriveDelayedPaymentPrivKey (delayedPaymentBasepointSecret: DelayedPaymentBasepointSecret)
+                                                : DelayedPaymentPrivKey =
+        DelayedPaymentPrivKey <|
+            this.DerivePrivKey (delayedPaymentBasepointSecret.RawKey())
+
+    member this.DeriveDelayedPaymentPubKey (delayedPaymentBasepoint: DelayedPaymentBasepoint)
+                                               : DelayedPaymentPubKey =
+        DelayedPaymentPubKey <|
+            this.DerivePubKey (delayedPaymentBasepoint.RawPubKey())
+
+    member this.DeriveHtlcPrivKey (htlcBasepointSecret: HtlcBasepointSecret)
+                                      : HtlcPrivKey =
+        HtlcPrivKey <|
+            this.DerivePrivKey (htlcBasepointSecret.RawKey())
+
+    member this.DeriveHtlcPubKey (htlcBasepoint: HtlcBasepoint)
+                                     : HtlcPubKey =
+        HtlcPubKey <|
+            this.DerivePubKey (htlcBasepoint.RawPubKey())
+
+    member this.DeriveRevocationPubKey (revocationBasepoint: RevocationBasepoint)
+                           : RevocationPubKey =
+        let revocationBasepointBytes = revocationBasepoint.ToBytes()
+        let perCommitmentPointBytes = this.ToBytes()
+        let revocationBasepointTweak =
+            Key.FromHash <| Array.append revocationBasepointBytes perCommitmentPointBytes
+        let perCommitmentPointTweak =
+            Key.FromHash <| Array.append perCommitmentPointBytes revocationBasepointBytes
+
+        RevocationPubKey <| PubKey.Add(
+            PubKey.Mul(revocationBasepoint.RawPubKey(), revocationBasepointTweak),
+            PubKey.Mul(this.RawPubKey(), perCommitmentPointTweak)
+        )
 
 and [<Struct>] CommitmentSeed(lastPerCommitmentSecret: PerCommitmentSecret) =
     new(key: Key) =

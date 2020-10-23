@@ -2,6 +2,7 @@ namespace DotNetLightning.Utils
 
 open System.IO
 open NBitcoin
+open NBitcoin.Crypto
 
 [<AutoOpen>]
 module NBitcoinExtensions =
@@ -34,6 +35,9 @@ module NBitcoinExtensions =
 
     type Key with
         static member BytesLength: int = 32
+
+        static member FromHash(preimage: array<byte>): Key =
+            Key (Hashes.SHA256 preimage)
 
     type PubKey with
         static member BytesLength: int = 33
