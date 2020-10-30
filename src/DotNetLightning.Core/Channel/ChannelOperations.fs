@@ -219,6 +219,7 @@ type ChannelCommand =
     | Close of OperationClose
     | ApplyClosingSigned of ClosingSignedMsg
     | RemoteShutdown of ShutdownMsg
+    | RemoteForceClose of Transaction
 
     // else
     | ForceClose

@@ -61,6 +61,16 @@ module Channel =
         |> fun ecdsaSig -> TransactionSignature(ecdsaSig.Value, SigHash.All)
 
     module Closing =
+        let getFundsFromClosingTransaction (commitments: Commitments)
+                                           (channel: Channel)
+                                           (transaction: Transaction)
+                                               : TransactionBuilder =
+            Commitments.getFundsFromForceClosingTransaction
+                commitments
+                channel.ChannelPrivKeys
+                channel.Network
+                transaction
+
         let makeClosingTx (channelPrivKeys: ChannelPrivKeys,
                            cm: Commitments,
                            localSpk: Script,
@@ -773,6 +783,27 @@ module Channel =
                     )
                 return failwith "Not Implemented yet"
             }
+        | WaitForFundingLocked state, RemoteForceClose transaction ->
+            let transactionBuilder =
+                Closing.getFundsFromClosingTransaction state.Commitments cs transaction
+            Ok [ RemoteForceClosed transactionBuilder ]
+        | ChannelState.Normal state, RemoteForceClose transaction ->
+            let transactionBuilder =
+                Closing.getFundsFromClosingTransaction state.Commitments cs transaction
+            Ok [ RemoteForceClosed transactionBuilder ]
+        | Shutdown state, RemoteForceClose transaction ->
+            let transactionBuilder =
+                Closing.getFundsFromClosingTransaction state.Commitments cs transaction
+            Ok [ RemoteForceClosed transactionBuilder ]
+        | Negotiating state, RemoteForceClose transaction ->
+            let transactionBuilder =
+                Closing.getFundsFromClosingTransaction state.Commitments cs transaction
+            Ok [ RemoteForceClosed transactionBuilder ]
+        | Closing state, RemoteForceClose transaction ->
+            let transactionBuilder =
+                Closing.getFundsFromClosingTransaction state.Commitments cs transaction
+            Ok [ RemoteForceClosed transactionBuilder ]
+
         | state, cmd ->
             undefinedStateAndCmdPair state cmd
 

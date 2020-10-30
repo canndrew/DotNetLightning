@@ -122,6 +122,9 @@ type RevocationPubKey =
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
 
+    static member FromBytes(bytes: array<byte>): RevocationPubKey =
+        RevocationPubKey <| PubKey bytes
+
     override this.ToString() =
         this.RawPubKey().ToString()
 
@@ -213,6 +216,9 @@ type DelayedPaymentPubKey =
 
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member FromBytes(bytes: array<byte>): DelayedPaymentPubKey =
+        DelayedPaymentPubKey <| PubKey bytes
 
     override this.ToString() =
         this.RawPubKey().ToString()

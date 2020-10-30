@@ -298,6 +298,7 @@ type ChannelEvent =
     // ------ closing ------
     | MutualClosePerformed of txToPublish: FinalizedTx * nextState : ClosingData
     | WeProposedNewClosingSigned of msgToSend: ClosingSignedMsg * nextState: NegotiatingData
+    | RemoteForceClosed of TransactionBuilder
     // -------- else ---------
     | Closed
     | Disconnected
