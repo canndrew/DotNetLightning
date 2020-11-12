@@ -200,6 +200,9 @@ type ChannelEvent =
     | BothFundingLocked of nextState: Data.NormalData * nextCommitments: Commitments
 
     // -------- normal operation ------
+    | WeAcceptedOperationMonoHopUnidirectionalPayment of msg: MonoHopUnidirectionalPaymentMsg * newCommitments: Commitments
+    | WeAcceptedMonoHopUnidirectionalPayment of newCommitments: Commitments
+
     | WeAcceptedOperationAddHTLC of msg: UpdateAddHTLCMsg * newCommitments: Commitments
     | WeAcceptedUpdateAddHTLC of newCommitments: Commitments
 
@@ -273,6 +276,7 @@ type ChannelState =
             (fun v cc -> match cc with
                          | Normal _ -> Normal v
                          | _ -> cc )
+
         member this.Phase =
             match this with
             | WaitForFundingConfirmed _
