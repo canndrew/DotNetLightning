@@ -267,6 +267,9 @@ type ChannelEvent =
     | BothFundingLocked of nextState: Data.NormalData
 
     // -------- normal operation ------
+    | WeAcceptedOperationMonoHopUnidirectionalPayment of msg: MonoHopUnidirectionalPaymentMsg * newCommitments: Commitments
+    | WeAcceptedMonoHopUnidirectionalPayment of newCommitments: Commitments
+
     | WeAcceptedOperationAddHTLC of msg: UpdateAddHTLCMsg * newCommitments: Commitments
     | WeAcceptedUpdateAddHTLC of newCommitments: Commitments
 
@@ -340,6 +343,15 @@ type ChannelState =
             (fun v cc -> match cc with
                          | Normal _ -> Normal v
                          | _ -> cc )
+        member this.ChannelId: ChannelId =
+            match this with
+            | WaitForFundingConfirmed data -> data.ChannelId
+            | WaitForFundingLocked data -> data.ChannelId
+            | Normal data -> data.ChannelId
+            | Shutdown data -> data.ChannelId
+            | Negotiating data -> data.ChannelId
+            | Closing data -> data.ChannelId
+
         member this.Phase =
             match this with
             | WaitForFundingConfirmed _
@@ -348,3 +360,13 @@ type ChannelState =
             | Shutdown _
             | Negotiating _
             | Closing _ -> ChannelStatePhase.Closing
+
+        member this.Commitments: Commitments =
+            match this with
+            | WaitForFundingConfirmed data -> (data :> IHasCommitments).Commitments
+            | WaitForFundingLocked data -> (data :> IHasCommitments).Commitments
+            | Normal data -> (data :> IHasCommitments).Commitments
+            | Shutdown data -> (data :> IHasCommitments).Commitments
+            | Negotiating data -> (data :> IHasCommitments).Commitments
+            | Closing data -> (data :> IHasCommitments).Commitments
+
