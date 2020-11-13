@@ -2,6 +2,8 @@ namespace ResultUtils
 
 open System
 
+open ResultUtils.Portability
+
 [<AutoOpen>]
 module ResultCE =
   type ResultBuilder() =
