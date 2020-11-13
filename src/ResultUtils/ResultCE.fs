@@ -2,6 +2,7 @@ namespace ResultUtils
 
 open System
 
+open ResultUtils
 open ResultUtils.Portability
 
 [<AutoOpen>]

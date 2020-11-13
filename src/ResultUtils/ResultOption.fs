@@ -1,5 +1,6 @@
 namespace ResultUtils
 
+open ResultUtils
 open ResultUtils.Portability
 
 [<RequireQualifiedAccess>]
