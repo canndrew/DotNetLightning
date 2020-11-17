@@ -1,6 +1,7 @@
 module SerializationPropertyTests
 
 open ResultUtils
+open ResultUtils.Portability
 open System.IO
 
 open Expecto

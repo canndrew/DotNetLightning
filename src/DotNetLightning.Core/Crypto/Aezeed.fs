@@ -9,6 +9,8 @@ open NBitcoin
 
 open System.Security.Cryptography
 open System.Text
+open ResultUtils
+open ResultUtils.Portability
 open DotNetLightning.Core.Utils.Extensions
 open DotNetLightning.Serialization
 open DotNetLightning.Utils

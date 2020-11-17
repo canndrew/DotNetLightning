@@ -3,6 +3,7 @@ module PerCommitmentSecretStoreTests
 open NBitcoin
 open Expecto
 open ResultUtils
+open ResultUtils.Portability
 open DotNetLightning.Utils
 open DotNetLightning.Crypto
 

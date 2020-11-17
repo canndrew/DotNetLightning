@@ -1,6 +1,7 @@
 module TransactionBolt3TestVectorTests
 
 open ResultUtils
+open ResultUtils.Portability
 open System
 open System.Text.Json
 open DotNetLightning.Crypto

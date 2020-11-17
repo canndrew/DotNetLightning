@@ -4,6 +4,7 @@ open System
 open NBitcoin
 
 open ResultUtils
+open ResultUtils.Portability
 open DotNetLightning.Crypto
 open System.Text
 open Expecto
