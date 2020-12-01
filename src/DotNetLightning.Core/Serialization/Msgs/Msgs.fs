@@ -520,7 +520,7 @@ type OpenChannelMsg = {
     mutable HTLCBasepoint: HtlcBasepoint
     mutable FirstPerCommitmentPoint: PerCommitmentPoint
     mutable ChannelFlags: uint8
-    mutable ShutdownScriptPubKey: OptionalField<Script>
+    mutable ShutdownScriptPubKey: OptionalField<ShutdownScriptPubKey>
 }
 with
     interface IChannelMsg
@@ -595,7 +595,7 @@ type AcceptChannelMsg = {
     mutable DelayedPaymentBasepoint: DelayedPaymentBasepoint
     mutable HTLCBasepoint: HtlcBasepoint
     mutable FirstPerCommitmentPoint: PerCommitmentPoint
-    mutable ShutdownScriptPubKey: OptionalField<Script>
+    mutable ShutdownScriptPubKey: OptionalField<ShutdownScriptPubKey>
 }
 with
     interface IChannelMsg
@@ -700,14 +700,14 @@ with
 [<CLIMutable>]
 type ShutdownMsg = {
     mutable ChannelId: ChannelId
-    mutable ScriptPubKey: Script
+    mutable ScriptPubKey: ShutdownScriptPubKey
 }
 with
     interface IChannelMsg
     interface ILightningSerializable<ShutdownMsg> with
         member this.Deserialize(ls) =
             this.ChannelId <- ls.ReadUInt256(true) |> ChannelId
-            this.ScriptPubKey <- ls.ReadScript()
+            this.ScriptPubKey <- ls.ReadShutdownScriptPubKey()
         member this.Serialize(ls) =
             ls.Write(this.ChannelId.Value.ToBytes())
             ls.WriteWithLen(this.ScriptPubKey.ToBytes())
