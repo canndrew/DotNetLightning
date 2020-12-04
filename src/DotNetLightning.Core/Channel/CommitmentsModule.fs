@@ -24,6 +24,7 @@ module internal Commitments =
                                     | _ -> false)
 
         let makeRemoteTxs
+            (localIsFunder: bool)
             (commitTxNumber: CommitmentNumber)
             (localParams: LocalParams)
             (remoteParams: RemoteParams)
@@ -39,7 +40,7 @@ module internal Commitments =
                                           commitTxNumber
                                           remoteChannelKeys.PaymentBasepoint
                                           localChannelKeys.PaymentBasepoint
-                                          (not localParams.IsFunder)
+                                          (not localIsFunder)
                                           (remoteParams.DustLimitSatoshis)
                                           localCommitmentPubKeys.RevocationPubKey
                                           (localParams.ToSelfDelay)
@@ -64,6 +65,7 @@ module internal Commitments =
             }
 
         let makeLocalTXs
+            (localIsFunder: bool)
             (commitTxNumber: CommitmentNumber)
             (localParams: LocalParams)
             (remoteParams: RemoteParams)
@@ -81,7 +83,7 @@ module internal Commitments =
                                           commitTxNumber
                                           localChannelKeys.PaymentBasepoint
                                           remoteChannelKeys.PaymentBasepoint
-                                          localParams.IsFunder
+                                          localIsFunder
                                           localParams.DustLimitSatoshis
                                           remoteCommitmentPubKeys.RevocationPubKey
                                           remoteParams.ToSelfDelay
@@ -230,7 +232,7 @@ module internal Commitments =
                 msg.HTLCId |> unknownHTLCId
 
     let sendFee(op: OperationUpdateFee) (cm: Commitments) =
-            if (not cm.LocalParams.IsFunder) then
+            if (not cm.IsFunder) then
                 "Local is Fundee so it cannot send update fee" |> apiMisuse
             else
                 let fee = {
@@ -259,7 +261,7 @@ module internal Commitments =
                    (localFeerate)
                    (msg: UpdateFeeMsg)
                    (cm: Commitments) =
-        if (cm.LocalParams.IsFunder) then
+        if (cm.IsFunder) then
             "Remote is Fundee so it cannot send update fee" |> apiMisuse
         else
             result {
@@ -289,7 +291,8 @@ module internal Commitments =
                 // remote commitment will include all local changes + remote acked changes
                 let! spec = cm.RemoteCommit.Spec.Reduce(cm.RemoteChanges.ACKed, cm.LocalChanges.Proposed) |> expectTransactionError
                 let! (remoteCommitTx, htlcTimeoutTxs, htlcSuccessTxs) =
-                    Helpers.makeRemoteTxs (cm.RemoteCommit.Index.NextCommitment())
+                    Helpers.makeRemoteTxs cm.IsFunder
+                                          (cm.RemoteCommit.Index.NextCommitment())
                                           (cm.LocalParams)
                                           (cm.RemoteParams)
                                           (cm.FundingScriptCoin)
@@ -348,7 +351,15 @@ module internal Commitments =
                 let! spec = cm.LocalCommit.Spec.Reduce(cm.LocalChanges.ACKed, cm.RemoteChanges.Proposed) |> expectTransactionError
                 let localPerCommitmentPoint = commitmentSeed.DerivePerCommitmentPoint nextI
                 let! (localCommitTx, htlcTimeoutTxs, htlcSuccessTxs) =
-                    Helpers.makeLocalTXs (nextI) (cm.LocalParams) (cm.RemoteParams) (cm.FundingScriptCoin) (localPerCommitmentPoint) spec n
+                    Helpers.makeLocalTXs
+                        cm.IsFunder
+                        nextI
+                        cm.LocalParams
+                        cm.RemoteParams
+                        cm.FundingScriptCoin
+                        localPerCommitmentPoint
+                        spec
+                        n
                     |> expectTransactionErrors
                 let signature, signedCommitTx = channelPrivKeys.SignWithFundingPrivKey localCommitTx.Value
 
