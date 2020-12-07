@@ -73,22 +73,14 @@ type RemoteCommit = {
     RemotePerCommitmentPoint: PerCommitmentPoint
 }
 
-type WaitingForRevocation = {
-    NextRemoteCommit: RemoteCommit
-}
-    with
-        static member NextRemoteCommit_: Lens<_,_> =
-            (fun w -> w.NextRemoteCommit),
-            (fun v w -> { w with NextRemoteCommit = v})
-
 type RemoteNextCommitInfo =
-    | Waiting of WaitingForRevocation
+    | Waiting of RemoteCommit
     | Revoked of PerCommitmentPoint
     with
-        static member Waiting_: Prism<RemoteNextCommitInfo, WaitingForRevocation> =
+        static member Waiting_: Prism<RemoteNextCommitInfo, RemoteCommit> =
             (fun remoteNextCommitInfo ->
                 match remoteNextCommitInfo with
-                | Waiting waitingForRevocation -> Some waitingForRevocation
+                | Waiting remoteCommit -> Some remoteCommit
                 | Revoked _ -> None),
             (fun waitingForRevocation remoteNextCommitInfo ->
                 match remoteNextCommitInfo with
@@ -182,8 +174,7 @@ type Commitments = {
                 let remoteCommit =
                     match remoteNextCommitInfo with
                     | Revoked _ -> this.RemoteCommit
-                    | Waiting waitingForRevocation ->
-                        waitingForRevocation.NextRemoteCommit
+                    | Waiting nextRemoteCommit -> nextRemoteCommit
                 remoteCommit.Spec.HTLCs
                 |> Map.tryPick(fun _k v ->
                     if v.Direction = directionRelativeToLocal.Opposite && v.Add.HTLCId = htlcId then
@@ -238,7 +229,7 @@ type Commitments = {
                                          : LNMoney =
             let remoteCommit =
                 match remoteNextCommitInfoOpt with
-                | Some (RemoteNextCommitInfo.Waiting info) -> info.NextRemoteCommit
+                | Some (RemoteNextCommitInfo.Waiting nextRemoteCommit) -> nextRemoteCommit
                 | Some (RemoteNextCommitInfo.Revoked _info) -> this.RemoteCommit
                 | None -> this.RemoteCommit
             let reducedRes =

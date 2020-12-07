@@ -685,7 +685,7 @@ module Channel =
 
                 let remoteCommit1 =
                     match state.RemoteNextCommitInfo with
-                    | RemoteNextCommitInfo.Waiting info -> info.NextRemoteCommit
+                    | RemoteNextCommitInfo.Waiting nextRemoteCommit -> nextRemoteCommit
                     | RemoteNextCommitInfo.Revoked _info -> commitments1.RemoteCommit
                 let! reduced = remoteCommit1.Spec.Reduce(commitments1.RemoteChanges.ACKed, commitments1.LocalChanges.Proposed) |> expectTransactionError
                 do! Validation.checkOurMonoHopUnidirectionalPaymentIsAcceptableWithCurrentSpec reduced commitments1 payment
@@ -729,7 +729,7 @@ module Channel =
                 // we need to base the next current commitment on the last sig we sent, even if we didn't yet receive their revocation
                 let remoteCommit1 =
                     match state.RemoteNextCommitInfo with
-                    | RemoteNextCommitInfo.Waiting info -> info.NextRemoteCommit
+                    | RemoteNextCommitInfo.Waiting nextRemoteCommit -> nextRemoteCommit
                     | RemoteNextCommitInfo.Revoked _info -> commitments1.RemoteCommit
                 let! reduced = remoteCommit1.Spec.Reduce(commitments1.RemoteChanges.ACKed, commitments1.LocalChanges.Proposed) |> expectTransactionError
                 do! Validation.checkOurUpdateAddHTLCIsAcceptableWithCurrentSpec reduced commitments1 add
@@ -804,7 +804,7 @@ module Channel =
             | RemoteNextCommitInfo.Revoked _ ->
                 let errorMsg = sprintf "Unexpected revocation"
                 invalidRevokeAndACK msg errorMsg
-            | RemoteNextCommitInfo.Waiting({ NextRemoteCommit = theirNextCommit }) ->
+            | RemoteNextCommitInfo.Waiting theirNextCommit ->
                 let remotePerCommitmentSecretsOpt =
                     cm.RemotePerCommitmentSecrets.InsertPerCommitmentSecret
                         cm.RemoteCommit.Index
