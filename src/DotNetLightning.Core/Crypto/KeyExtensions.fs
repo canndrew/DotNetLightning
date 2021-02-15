@@ -298,7 +298,16 @@ module KeyExtensions =
     /// this via BIP32 key derivation where `channelIndex` is the child
     /// index used to derive the channel's master key.
     type NodeMasterPrivKey with
+        static member NodeSecretIndex: int = 0x7fffffff
+
+        member this.NodeSecret(): NodeSecret =
+            NodeSecret (this.RawExtKey().Derive(NodeMasterPrivKey.NodeSecretIndex, true).PrivateKey)
+
+        member this.NodeId(): NodeId =
+            this.NodeSecret().NodeId()
+
         member this.ChannelPrivKeys (channelIndex: int): ChannelPrivKeys =
+            assert (channelIndex < NodeMasterPrivKey.NodeSecretIndex)
             let channelMasterKey = this.RawExtKey().Derive(channelIndex, true)
 
             // TODO: make use of these keys or remove them

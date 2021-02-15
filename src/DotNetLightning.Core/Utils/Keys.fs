@@ -354,10 +354,3 @@ type NodeMasterPrivKey =
     member this.RawExtKey(): ExtKey =
         let (NodeMasterPrivKey extKey) = this
         extKey
-
-    member this.NodeSecret(): NodeSecret =
-        NodeSecret (this.RawExtKey().PrivateKey)
-
-    member this.NodeId(): NodeId =
-        this.NodeSecret().NodeId()
-
