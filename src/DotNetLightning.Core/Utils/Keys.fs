@@ -13,8 +13,14 @@ type FundingPubKey =
         let (FundingPubKey pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): FundingPubKey =
+        FundingPubKey <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): FundingPubKey =
+        FundingPubKey <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -29,6 +35,18 @@ type FundingPrivKey =
     member this.FundingPubKey(): FundingPubKey =
         FundingPubKey(this.RawKey().PubKey)
 
+    static member FromBytes (bytes: array<byte>): FundingPrivKey =
+        FundingPrivKey <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): FundingPrivKey =
+        FundingPrivKey <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type RevocationBasepoint =
     | RevocationBasepoint of PubKey
     with
@@ -36,8 +54,14 @@ type RevocationBasepoint =
         let (RevocationBasepoint pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): RevocationBasepoint =
+        RevocationBasepoint <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): RevocationBasepoint =
+        RevocationBasepoint <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -52,8 +76,17 @@ type RevocationBasepointSecret =
     member this.RevocationBasepoint(): RevocationBasepoint =
         RevocationBasepoint(this.RawKey().PubKey)
 
+    static member FromBytes (bytes: array<byte>): RevocationBasepointSecret =
+        RevocationBasepointSecret <| new Key(bytes)
+
     member this.ToBytes(): array<byte> =
         this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): RevocationBasepointSecret =
+        RevocationBasepointSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
 
 type RevocationPubKey =
     | RevocationPubKey of PubKey
@@ -68,6 +101,9 @@ type RevocationPubKey =
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
 
+    static member Parse (hex: string): RevocationPubKey =
+        RevocationPubKey <| PubKey hex
+
     override this.ToString() =
         this.RawPubKey().ToString()
 
@@ -78,8 +114,17 @@ type RevocationPrivKey =
         let (RevocationPrivKey key) = this
         key
 
+    static member FromBytes (bytes: array<byte>): RevocationPrivKey =
+        RevocationPrivKey <| new Key(bytes)
+
     member this.ToBytes(): array<byte> =
         this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): RevocationPrivKey =
+        RevocationPrivKey <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
 
 type PaymentBasepoint =
     | PaymentBasepoint of PubKey
@@ -88,8 +133,14 @@ type PaymentBasepoint =
         let (PaymentBasepoint pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): PaymentBasepoint =
+        PaymentBasepoint <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): PaymentBasepoint =
+        PaymentBasepoint <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -104,6 +155,18 @@ type PaymentBasepointSecret =
     member this.PaymentBasepoint(): PaymentBasepoint =
         PaymentBasepoint(this.RawKey().PubKey)
 
+    static member FromBytes (bytes: array<byte>): PaymentBasepointSecret =
+        PaymentBasepointSecret <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): PaymentBasepointSecret =
+        PaymentBasepointSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type PaymentPubKey =
     | PaymentPubKey of PubKey
     with
@@ -111,8 +174,14 @@ type PaymentPubKey =
         let (PaymentPubKey pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): PaymentPubKey =
+        PaymentPubKey <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): PaymentPubKey =
+        PaymentPubKey <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -127,6 +196,18 @@ type PaymentPrivKey =
     member this.PaymentPubKey(): PaymentPubKey =
         PaymentPubKey <| this.RawKey().PubKey
 
+    static member FromBytes (bytes: array<byte>): PaymentPrivKey =
+        PaymentPrivKey <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): PaymentPrivKey =
+        PaymentPrivKey <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type DelayedPaymentBasepoint =
     | DelayedPaymentBasepoint of PubKey
     with
@@ -134,8 +215,14 @@ type DelayedPaymentBasepoint =
         let (DelayedPaymentBasepoint pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): DelayedPaymentBasepoint =
+        DelayedPaymentBasepoint <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): DelayedPaymentBasepoint =
+        DelayedPaymentBasepoint <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -150,6 +237,18 @@ type DelayedPaymentBasepointSecret =
     member this.DelayedPaymentBasepoint(): DelayedPaymentBasepoint =
         DelayedPaymentBasepoint(this.RawKey().PubKey)
 
+    static member FromBytes (bytes: array<byte>): DelayedPaymentBasepointSecret =
+        DelayedPaymentBasepointSecret <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): DelayedPaymentBasepointSecret =
+        DelayedPaymentBasepointSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type DelayedPaymentPubKey =
     | DelayedPaymentPubKey of PubKey
     with
@@ -162,6 +261,9 @@ type DelayedPaymentPubKey =
 
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): DelayedPaymentPubKey =
+        DelayedPaymentPubKey <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -176,6 +278,18 @@ type DelayedPaymentPrivKey =
     member this.DelayedPaymentPubKey(): DelayedPaymentPubKey =
         DelayedPaymentPubKey <| this.RawKey().PubKey
 
+    static member FromBytes (bytes: array<byte>): DelayedPaymentPrivKey =
+        DelayedPaymentPrivKey <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): DelayedPaymentPrivKey =
+        DelayedPaymentPrivKey <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type HtlcBasepoint =
     | HtlcBasepoint of PubKey
     with
@@ -183,8 +297,14 @@ type HtlcBasepoint =
         let (HtlcBasepoint pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): HtlcBasepoint =
+        HtlcBasepoint <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): HtlcBasepoint =
+        HtlcBasepoint <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -199,6 +319,18 @@ type HtlcBasepointSecret =
     member this.HtlcBasepoint(): HtlcBasepoint =
         HtlcBasepoint(this.RawKey().PubKey)
 
+    static member FromBytes (bytes: array<byte>): HtlcBasepointSecret =
+        HtlcBasepointSecret <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): HtlcBasepointSecret =
+        HtlcBasepointSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type HtlcPubKey =
     | HtlcPubKey of PubKey
     with
@@ -206,8 +338,14 @@ type HtlcPubKey =
         let (HtlcPubKey pubKey) = this
         pubKey
 
+    static member FromBytes (bytes: array<byte>): HtlcPubKey =
+        HtlcPubKey <| PubKey bytes
+
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): HtlcPubKey =
+        HtlcPubKey <| PubKey hex
 
     override this.ToString() =
         this.RawPubKey().ToString()
@@ -222,6 +360,18 @@ type HtlcPrivKey =
     member this.HtlcPubKey(): HtlcPubKey =
         HtlcPubKey <| this.RawKey().PubKey
 
+    static member FromBytes (bytes: array<byte>): HtlcPrivKey =
+        HtlcPrivKey <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): HtlcPrivKey =
+        HtlcPrivKey <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type NodeSecret =
     | NodeSecret of Key
     with
@@ -231,6 +381,18 @@ type NodeSecret =
 
     member this.NodeId(): NodeId =
         NodeId (this.RawKey().PubKey)
+
+    static member FromBytes (bytes: array<byte>): NodeSecret =
+        NodeSecret <| new Key(bytes)
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): NodeSecret =
+        NodeSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
 
 /// In usual operation we should not hold secrets on memory. So only hold pubkey
 type ChannelPubKeys = {
@@ -262,6 +424,12 @@ type PerCommitmentPoint =
 
     member this.ToBytes(): array<byte> =
         this.RawPubKey().ToBytes()
+
+    static member Parse (hex: string): PerCommitmentPoint =
+        PerCommitmentPoint <| PubKey hex
+
+    override this.ToString() =
+        this.RawPubKey().ToString()
 
 #if !NoDUsAsStructs
 [<Struct>]
@@ -319,12 +487,33 @@ type PerCommitmentSecret =
     member this.PerCommitmentPoint(): PerCommitmentPoint =
         PerCommitmentPoint <| this.RawKey().PubKey
 
+    static member Parse (hex: string) (network: Network): PerCommitmentSecret =
+        PerCommitmentSecret <| Key.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
+
 type CommitmentSeed =
     | CommitmentSeed of PerCommitmentSecret
     with
     member this.LastPerCommitmentSecret() =
         let (CommitmentSeed lastPerCommitmentSecret) = this
         lastPerCommitmentSecret
+
+    member this.RawKey(): Key =
+        this.LastPerCommitmentSecret().RawKey()
+
+    static member FromBytes (bytes: array<byte>): CommitmentSeed =
+        CommitmentSeed <| PerCommitmentSecret.FromBytes bytes
+
+    member this.ToBytes(): array<byte> =
+        this.RawKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): CommitmentSeed =
+        CommitmentSeed <| PerCommitmentSecret.Parse hex network
+
+    member this.ToString (network: Network) =
+        this.RawKey().ToString network
 
 /// Set of lightning keys needed to operate a channel as describe in BOLT 3
 type ChannelPrivKeys = {
@@ -354,3 +543,16 @@ type NodeMasterPrivKey =
     member this.RawExtKey(): ExtKey =
         let (NodeMasterPrivKey extKey) = this
         extKey
+
+    static member FromBytes (bytes: array<byte>): NodeMasterPrivKey =
+        NodeMasterPrivKey <| ExtKey bytes
+
+    member this.ToBytes(): array<byte> =
+        this.RawExtKey().ToBytes()
+
+    static member Parse (hex: string) (network: Network): NodeMasterPrivKey =
+        NodeMasterPrivKey <| ExtKey.Parse(hex, network)
+
+    member this.ToString (network: Network) =
+        this.RawExtKey().ToString network
+
