@@ -4,7 +4,6 @@ open System
 open NBitcoin
 open NBitcoin.BuilderExtensions
 open DotNetLightning.Utils
-open DotNetLightning.Utils.SeqConsumer
 open DotNetLightning.Crypto
 
 open ResultUtils
@@ -24,48 +23,48 @@ type CommitmentToLocalParameters = {
             |> List.ofSeq
             |> Seq.ofList
         let checkOpCode(opcodeType: OpcodeType) = seqConsumer<Op> {
-            let! op = NextInSeq()
+            let! op = SeqConsumer.next()
             if op.Code = opcodeType then
                 return ()
             else
-                return! AbortSeqConsumer()
+                return! SeqConsumer.abort()
         }
         let consumeAllResult =
-            SeqConsumer.ConsumeAll ops <| seqConsumer {
+            SeqConsumer.consumeAll ops <| seqConsumer {
                 do! checkOpCode OpcodeType.OP_IF
-                let! opRevocationPubKey = NextInSeq()
+                let! opRevocationPubKey = SeqConsumer.next()
                 let! _revocationPubKey = seqConsumer {
                     match opRevocationPubKey.PushData with
-                    | null -> return! AbortSeqConsumer()
+                    | null -> return! SeqConsumer.abort()
                     | bytes ->
                         try
                             return RevocationPubKey.FromBytes bytes
                         with
-                        | :? FormatException -> return! AbortSeqConsumer()
+                        | :? FormatException -> return! SeqConsumer.abort()
                 }
                 do! checkOpCode OpcodeType.OP_ELSE
-                let! opToSelfDelay = NextInSeq()
+                let! opToSelfDelay = SeqConsumer.next()
                 let! toSelfDelay = seqConsumer {
                     let nullableToSelfDelay = opToSelfDelay.GetLong()
                     if nullableToSelfDelay.HasValue then
                         try
                             return BlockHeightOffset16 (Convert.ToUInt16 nullableToSelfDelay.Value)
                         with
-                        | :? OverflowException -> return! AbortSeqConsumer()
+                        | :? OverflowException -> return! SeqConsumer.abort()
                     else
-                        return! AbortSeqConsumer()
+                        return! SeqConsumer.abort()
                 }
                 do! checkOpCode OpcodeType.OP_CHECKSEQUENCEVERIFY
                 do! checkOpCode OpcodeType.OP_DROP
-                let! opLocalDelayedPubKey = NextInSeq()
+                let! opLocalDelayedPubKey = SeqConsumer.next()
                 let! localDelayedPubKey = seqConsumer {
                     match opLocalDelayedPubKey.PushData with
-                    | null -> return! AbortSeqConsumer()
+                    | null -> return! SeqConsumer.abort()
                     | bytes ->
                         try
                             return DelayedPaymentPubKey.FromBytes bytes
                         with
-                        | :? FormatException -> return! AbortSeqConsumer()
+                        | :? FormatException -> return! SeqConsumer.abort()
                 }
                 do! checkOpCode OpcodeType.OP_ENDIF
                 do! checkOpCode OpcodeType.OP_CHECKSIG
