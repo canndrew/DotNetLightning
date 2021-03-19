@@ -30,8 +30,8 @@ open ResultUtils.Portability
 
 [<AutoOpen>]
 module SeqConsumerCE =
-    type SeqConsumer<'SeqElement, 'T> = {
-        Consume: seq<'SeqElement> -> Option<seq<'SeqElement> * 'T>
+    type SeqConsumer<'SeqElement, 'Value> = {
+        Consume: seq<'SeqElement> -> Option<seq<'SeqElement> * 'Value>
     }
 
     type SeqConsumerBuilder<'SeqElement>() =
@@ -46,27 +46,28 @@ module SeqConsumerCE =
                     seqConsumer1.Consume sequence1
         }
 
-        member __.Return<'T>(value: 'T)
-                                : SeqConsumer<'SeqElement, 'T> = {
+        member __.Return<'Value>(value: 'Value)
+                                    : SeqConsumer<'SeqElement, 'Value> = {
             Consume = fun (sequence: seq<'SeqElement>) -> Some (sequence, value)
         }
 
-        member __.ReturnFrom<'T>(seqConsumer: SeqConsumer<'SeqElement, 'T>): SeqConsumer<'SeqElement, 'T> =
+        member __.ReturnFrom<'Value>(seqConsumer: SeqConsumer<'SeqElement, 'Value>)
+                                        : SeqConsumer<'SeqElement, 'Value> =
             seqConsumer
 
         member __.Zero(): SeqConsumer<'SeqElement, unit> = {
             Consume = fun (sequence: seq<'SeqElement>) -> Some (sequence, ())
         }
 
-        member __.Delay<'T>(delayedSeqConsumer: unit -> SeqConsumer<'SeqElement, 'T>)
-                               : SeqConsumer<'SeqElement, 'T> = {
+        member __.Delay<'Value>(delayedSeqConsumer: unit -> SeqConsumer<'SeqElement, 'Value>)
+                                   : SeqConsumer<'SeqElement, 'Value> = {
             Consume = fun (sequence: seq<'SeqElement>) ->
                 (delayedSeqConsumer ()).Consume sequence
         }
 
-        member __.TryWith<'T>(seqConsumer: SeqConsumer<'SeqElement, 'T>,
-                              onException: exn -> SeqConsumer<'SeqElement, 'T>
-                             ): SeqConsumer<'SeqElement, 'T> = {
+        member __.TryWith<'Value>(seqConsumer: SeqConsumer<'SeqElement, 'Value>,
+                                  onException: exn -> SeqConsumer<'SeqElement, 'Value>
+                                 ): SeqConsumer<'SeqElement, 'Value> = {
             Consume = fun (sequence: seq<'SeqElement>) ->
                 try
                     seqConsumer.Consume sequence
@@ -86,7 +87,7 @@ module SeqConsumer =
             |> Option.map (fun value -> (Seq.tail sequence, value))
     }
 
-    let abort<'SeqElement, 'T>(): SeqConsumer<'SeqElement, 'T> = {
+    let abort<'SeqElement, 'Value>(): SeqConsumer<'SeqElement, 'Value> = {
         Consume = fun (_sequence: seq<'SeqElement>) -> None
     }
 
@@ -94,9 +95,9 @@ module SeqConsumer =
         | SequenceEndedTooEarly
         | SequenceNotReadToEnd
 
-    let consumeAll<'SeqElement, 'T> (sequence: seq<'SeqElement>)
-                                    (seqConsumer: SeqConsumer<'SeqElement, 'T>)
-                                        : Result<'T, ConsumeAllError> =
+    let consumeAll<'SeqElement, 'Value> (sequence: seq<'SeqElement>)
+                                        (seqConsumer: SeqConsumer<'SeqElement, 'Value>)
+                                            : Result<'Value, ConsumeAllError> =
         match seqConsumer.Consume sequence with
         | None -> Error SequenceEndedTooEarly
         | Some (consumedSequence, value) ->
