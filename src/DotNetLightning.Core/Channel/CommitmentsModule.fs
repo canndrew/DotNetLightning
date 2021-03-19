@@ -419,17 +419,18 @@ module internal Commitments =
 
 module ForceCloseFundsRecovery =
     // The lightning spec specifies that commitment txs use version 2 bitcoin transactions.
+    [<Literal>]
     let TxVersionNumberOfCommitmentTxs = 2u
 
-    let check(thing: bool): Option<unit> =
+    let private check(thing: bool): Option<unit> =
         if thing then
             Some ()
         else
             None
 
-    let tryGetObscuredCommitmentNumber (fundingOutPoint: OutPoint)
-                                       (transaction: Transaction)
-                                           : Option<ObscuredCommitmentNumber> = option {
+    let private tryGetObscuredCommitmentNumber (fundingOutPoint: OutPoint)
+                                               (transaction: Transaction)
+                                                   : Option<ObscuredCommitmentNumber> = option {
         do! check (transaction.Version = TxVersionNumberOfCommitmentTxs)
         let! txIn = Seq.tryExactlyOne transaction.Inputs
         do! check (fundingOutPoint = txIn.PrevOut)
