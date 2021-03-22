@@ -14,7 +14,7 @@ open ResultUtils.Portability
 let commitmentToLocalExtensionTests =
     testList "CommitmentToLocalExtensionTests" [
         testCase "can extract parameters" <| fun _ ->
-            let rand = new Random()
+            let rand = Random()
             let revocationPubKey =
                 let key = new Key()
                 let pubKey = key.PubKey
