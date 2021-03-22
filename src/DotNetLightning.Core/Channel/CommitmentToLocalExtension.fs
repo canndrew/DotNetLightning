@@ -22,49 +22,49 @@ type CommitmentToLocalParameters = {
             // mutable.
             |> List.ofSeq
             |> Seq.ofList
-        let checkOpCode(opcodeType: OpcodeType) = seqConsumer<Op> {
-            let! op = SeqConsumer.next()
+        let checkOpCode(opcodeType: OpcodeType) = seqParser<Op> {
+            let! op = SeqParser.next()
             if op.Code = opcodeType then
                 return ()
             else
-                return! SeqConsumer.abort()
+                return! SeqParser.abort()
         }
-        let consumeAllResult =
-            SeqConsumer.consumeAll ops <| seqConsumer {
+        let parseToCompletionResult =
+            SeqParser.parseToCompletion ops <| seqParser {
                 do! checkOpCode OpcodeType.OP_IF
-                let! opRevocationPubKey = SeqConsumer.next()
-                let! _revocationPubKey = seqConsumer {
+                let! opRevocationPubKey = SeqParser.next()
+                let! _revocationPubKey = seqParser {
                     match opRevocationPubKey.PushData with
-                    | null -> return! SeqConsumer.abort()
+                    | null -> return! SeqParser.abort()
                     | bytes ->
                         try
                             return RevocationPubKey.FromBytes bytes
                         with
-                        | :? FormatException -> return! SeqConsumer.abort()
+                        | :? FormatException -> return! SeqParser.abort()
                 }
                 do! checkOpCode OpcodeType.OP_ELSE
-                let! opToSelfDelay = SeqConsumer.next()
-                let! toSelfDelay = seqConsumer {
+                let! opToSelfDelay = SeqParser.next()
+                let! toSelfDelay = seqParser {
                     let nullableToSelfDelay = opToSelfDelay.GetLong()
                     if nullableToSelfDelay.HasValue then
                         try
                             return BlockHeightOffset16 (Convert.ToUInt16 nullableToSelfDelay.Value)
                         with
-                        | :? OverflowException -> return! SeqConsumer.abort()
+                        | :? OverflowException -> return! SeqParser.abort()
                     else
-                        return! SeqConsumer.abort()
+                        return! SeqParser.abort()
                 }
                 do! checkOpCode OpcodeType.OP_CHECKSEQUENCEVERIFY
                 do! checkOpCode OpcodeType.OP_DROP
-                let! opLocalDelayedPubKey = SeqConsumer.next()
-                let! localDelayedPubKey = seqConsumer {
+                let! opLocalDelayedPubKey = SeqParser.next()
+                let! localDelayedPubKey = seqParser {
                     match opLocalDelayedPubKey.PushData with
-                    | null -> return! SeqConsumer.abort()
+                    | null -> return! SeqParser.abort()
                     | bytes ->
                         try
                             return DelayedPaymentPubKey.FromBytes bytes
                         with
-                        | :? FormatException -> return! SeqConsumer.abort()
+                        | :? FormatException -> return! SeqParser.abort()
                 }
                 do! checkOpCode OpcodeType.OP_ENDIF
                 do! checkOpCode OpcodeType.OP_CHECKSIG
@@ -73,9 +73,9 @@ type CommitmentToLocalParameters = {
                     LocalDelayedPubKey = localDelayedPubKey
                 }
             }
-        match consumeAllResult with
+        match parseToCompletionResult with
         | Ok data -> Some data
-        | Error _consumeAllError -> None
+        | Error _parseToCompletionError -> None
 
 type internal CommitmentToLocalExtension() =
     inherit BuilderExtension()
