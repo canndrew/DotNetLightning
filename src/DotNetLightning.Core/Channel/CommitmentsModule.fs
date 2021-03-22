@@ -480,17 +480,17 @@ module ForceCloseFundsRecovery =
             perCommitmentPoint.DeriveDelayedPaymentPrivKey
                 localChannelPrivKeys.DelayedPaymentBasepointSecret
 
-        transactionBuilder.SetVersion TxVersionNumberOfCommitmentTxs
-        |> ignore
-        transactionBuilder.Extensions.Add (CommitmentToLocalExtension())
-        transactionBuilder.AddKeys (delayedPaymentPrivKey.RawKey()) |> ignore
-        transactionBuilder.AddCoin(
-            ScriptCoin(transaction, uint32 toLocalIndex, toLocalScriptPubKey),
-            CoinOptions(
-                Sequence = (Nullable <| Sequence(uint32 commitments.LocalParams.ToSelfDelay.Value))
+        transactionBuilder
+            .SetVersion(TxVersionNumberOfCommitmentTxs)
+            .Extensions.Add(CommitmentToLocalExtension())
+        transactionBuilder
+            .AddKeys(delayedPaymentPrivKey.RawKey())
+            .AddCoin(
+                ScriptCoin(transaction, uint32 toLocalIndex, toLocalScriptPubKey),
+                CoinOptions(
+                    Sequence = (Nullable <| Sequence(uint32 commitments.LocalParams.ToSelfDelay.Value))
+                )
             )
-        ) |> ignore
-
         return transactionBuilder
     }
 
