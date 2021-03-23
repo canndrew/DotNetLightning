@@ -439,20 +439,22 @@ module ForceCloseFundsRecovery =
         return obscuredCommitmentNumber
     }
 
-    let tryGetFundsFromLocalCommitmentTx (commitments: Commitments)
+    let tryGetFundsFromLocalCommitmentTx (localParams: LocalParams)
+                                         (remoteParams: RemoteParams)
+                                         (fundingScriptCoin: ScriptCoin)
                                          (localChannelPrivKeys: ChannelPrivKeys)
                                          (network: Network)
                                          (transaction: Transaction)
                                              : Option<TransactionBuilder> = option {
         let! obscuredCommitmentNumber =
             tryGetObscuredCommitmentNumber
-                commitments.FundingScriptCoin.Outpoint
+                fundingScriptCoin.Outpoint
                 transaction
-        let localChannelPubKeys = commitments.LocalParams.ChannelPubKeys
-        let remoteChannelPubKeys = commitments.RemoteParams.ChannelPubKeys
+        let localChannelPubKeys = localParams.ChannelPubKeys
+        let remoteChannelPubKeys = remoteParams.ChannelPubKeys
         let commitmentNumber =
             obscuredCommitmentNumber.Unobscure
-                commitments.LocalParams.IsFunder
+                localParams.IsFunder
                 localChannelPubKeys.PaymentBasepoint
                 remoteChannelPubKeys.PaymentBasepoint
 
@@ -468,7 +470,7 @@ module ForceCloseFundsRecovery =
         let toLocalScriptPubKey =
             Scripts.toLocalDelayed
                 remoteCommitmentPubKeys.RevocationPubKey
-                commitments.LocalParams.ToSelfDelay
+                localParams.ToSelfDelay
                 localCommitmentPubKeys.DelayedPaymentPubKey
         let! toLocalIndex =
             let toLocalWitScriptPubKey = toLocalScriptPubKey.WitHash.ScriptPubKey
@@ -488,7 +490,7 @@ module ForceCloseFundsRecovery =
             .AddCoin(
                 ScriptCoin(transaction, uint32 toLocalIndex, toLocalScriptPubKey),
                 CoinOptions(
-                    Sequence = (Nullable <| Sequence(uint32 commitments.LocalParams.ToSelfDelay.Value))
+                    Sequence = (Nullable <| Sequence(uint32 localParams.ToSelfDelay.Value))
                 )
             )
         return transactionBuilder
