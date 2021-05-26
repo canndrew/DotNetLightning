@@ -442,23 +442,23 @@ module Primitives =
         | ZLib = 1uy
 
     type ShutdownScriptPubKey = private {
-        Thingo: Script
+        ShutdownScript: Script
     } with
         static member FromPubKeyP2wpkh (pubKey: PubKey) =
             let script = pubKey.WitHash.ScriptPubKey
-            { Thingo = script }
+            { ShutdownScript = script }
 
         static member FromPubKeyP2pkh (pubKey: PubKey) =
             let script = pubKey.Hash.ScriptPubKey
-            { Thingo = script }
+            { ShutdownScript = script }
 
         static member FromScriptP2sh (script: Script) =
             let scriptPubKey = script.Hash.ScriptPubKey
-            { Thingo = scriptPubKey }
+            { ShutdownScript = scriptPubKey }
 
         static member FromScriptP2wsh (script: Script) =
             let scriptPubKey = script.WitHash.ScriptPubKey
-            { Thingo = scriptPubKey }
+            { ShutdownScript = scriptPubKey }
 
         static member TryFromScript (scriptPubKey: Script)
                                         : Result<ShutdownScriptPubKey, string> =
@@ -468,14 +468,14 @@ module Primitives =
                 || (PayToWitPubKeyHashTemplate.Instance.CheckScriptPubKey(scriptPubKey))
                 || (PayToWitScriptHashTemplate.Instance.CheckScriptPubKey(scriptPubKey))
             if isValidFinalScriptPubKey then
-                Ok { Thingo = scriptPubKey }
+                Ok { ShutdownScript = scriptPubKey }
             else
                 sprintf "Invalid final script pubkey(%A). it must be one of p2pkh, p2sh, p2wpkh, p2wsh" scriptPubKey
                 |> Error 
 
         member self.ScriptPubKey(): Script =
-            self.Thingo
+            self.ShutdownScript
 
         member self.ToBytes(): array<byte> =
-            self.Thingo.ToBytes()
+            self.ShutdownScript.ToBytes()
 
