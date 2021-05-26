@@ -544,9 +544,18 @@ with
             this.HTLCBasepoint <- ls.ReadHtlcBasepoint()
             this.FirstPerCommitmentPoint <- ls.ReadPerCommitmentPoint()
             this.ChannelFlags <- ls.ReadUInt8()
+            let tlvs =
+                ls.ReadTLVStream()
+                |> Array.map(OpenChannelTLV.FromGenericTLV)
             this.ShutdownScriptPubKey <-
-                if (ls.Position = ls.Length) then None else
-                ls.ReadWithLen() |> Script |> Some
+                Seq.choose
+                    (function
+                        | OpenChannelTLV.UpfrontShutdownScript script -> Some script
+                        | _ -> None
+                    )
+                    tlvs
+                |> Seq.tryExactlyOne
+                |> Option.flatten
         member this.Serialize(ls) =
             ls.Write(this.Chainhash, true)
             ls.Write(this.TemporaryChannelId.Value, true)
@@ -566,7 +575,9 @@ with
             ls.Write(this.HTLCBasepoint.ToBytes())
             ls.Write(this.FirstPerCommitmentPoint.ToBytes())
             ls.Write(this.ChannelFlags)
-            ls.WriteWithLen(this.ShutdownScriptPubKey |> Option.map(fun x -> x.ToBytes()))
+            ls.WriteTLV(
+                (OpenChannelTLV.UpfrontShutdownScript this.ShutdownScriptPubKey).ToGenericTLV()
+            )
 
 [<CLIMutable>]
 type AcceptChannelMsg = {
@@ -604,9 +615,18 @@ with
             this.DelayedPaymentBasepoint <- ls.ReadDelayedPaymentBasepoint()
             this.HTLCBasepoint <- ls.ReadHtlcBasepoint()
             this.FirstPerCommitmentPoint <- ls.ReadPerCommitmentPoint()
+            let tlvs =
+                ls.ReadTLVStream()
+                |> Array.map(AcceptChannelTLV.FromGenericTLV)
             this.ShutdownScriptPubKey <-
-                if (ls.Position = ls.Length) then None else
-                ls.ReadWithLen() |> Script |> Some
+                Seq.choose
+                    (function
+                        | AcceptChannelTLV.UpfrontShutdownScript script -> Some script
+                        | _ -> None
+                    )
+                    tlvs
+                |> Seq.tryExactlyOne
+                |> Option.flatten
         member this.Serialize(ls) =
             ls.Write(this.TemporaryChannelId.Value.ToBytes())
             ls.Write(this.DustLimitSatoshis.Satoshi, false)
@@ -622,7 +642,9 @@ with
             ls.Write(this.DelayedPaymentBasepoint.ToBytes())
             ls.Write(this.HTLCBasepoint.ToBytes())
             ls.Write(this.FirstPerCommitmentPoint.ToBytes())
-            ls.WriteWithLen(this.ShutdownScriptPubKey |> Option.map(fun x -> x.ToBytes()))
+            ls.WriteTLV(
+                (AcceptChannelTLV.UpfrontShutdownScript this.ShutdownScriptPubKey).ToGenericTLV()
+            )
 
 [<CLIMutable>]
 type FundingCreatedMsg = {
