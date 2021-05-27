@@ -1020,8 +1020,11 @@ module Channel =
             { c with State = ChannelState.Normal nextState }
         | WeSentFundingLocked msg, WaitForFundingLocked prevState ->
             { c with State = WaitForFundingLocked { prevState with OurMessage = msg; HaveWeSentFundingLocked = true } }
-        | BothFundingLocked data, WaitForFundingLocked _s ->
-            { c with State = ChannelState.Normal data }
+        | BothFundingLocked (data, newCommitments), WaitForFundingLocked _s ->
+            { c with
+                Commitments = newCommitments
+                State = ChannelState.Normal data
+            }
 
         // ----- normal operation --------
         | WeAcceptedOperationMonoHopUnidirectionalPayment(_, newCommitments), ChannelState.Normal _normalData ->
