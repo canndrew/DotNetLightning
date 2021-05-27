@@ -480,8 +480,8 @@ module RemoteForceClose =
                            (network: Network) 
                                : TransactionBuilder =
 
-        let localChannelPubKeys = commitments.LocalParams.ChannelPubKeys
-        let remoteChannelPubKeys = commitments.RemoteParams.ChannelPubKeys
+        let localChannelPubKeys = localChannelPrivKeys.ToChannelPubKeys()
+        let remoteChannelPubKeys = commitments.RemoteChannelPubKeys
 
         let perCommitmentPoint = perCommitmentSecret.PerCommitmentPoint()
 
