@@ -202,7 +202,7 @@ type Commitments = {
                                 this.RemoteCommit.Spec
             
             let (toLocalAmount, toRemoteAmount) =
-                if (this.LocalParams.IsFunder) then
+                if (this.IsFunder) then
                     (this.RemoteCommit.Spec.ToLocal.Satoshi
                      |> Money.Satoshis),
                     (this.RemoteCommit.Spec.ToRemote.Satoshi
@@ -221,7 +221,7 @@ type Commitments = {
                                 this.LocalCommit.Spec
             
             let (toLocalAmount, toRemoteAmount) =
-                if (this.LocalParams.IsFunder) then
+                if (this.IsFunder) then
                     (this.LocalCommit.Spec.ToLocal.Satoshi
                      |> Money.Satoshis) - commitFee,
                     (this.LocalCommit.Spec.ToRemote.Satoshi
