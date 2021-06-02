@@ -475,6 +475,17 @@ and Channel = {
                 return (acceptChannelMsg, channelWaitingForFundingCreated)
             }
 
+        member this.SpendableBalance(): LNMoney =
+            let remoteNextCommitInfoOpt =
+                match this.State with
+                | ChannelState.WaitForFundingConfirmed _ -> None
+                | ChannelState.WaitForFundingLocked _ -> None
+                | ChannelState.Normal data -> Some data.RemoteNextCommitInfo
+                | ChannelState.Shutdown data -> Some data.RemoteNextCommitInfo
+                | ChannelState.Negotiating data -> Some data.RemoteNextCommitInfo
+                | ChannelState.Closing data -> Some data.RemoteNextCommitInfo
+            this.Commitments.SpendableBalance remoteNextCommitInfoOpt
+
 module Channel =
 
     let private hex = NBitcoin.DataEncoders.HexEncoder()
